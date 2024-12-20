@@ -1,0 +1,5 @@
+#spring.application.name=rest-with-spring-boot-and-java-felmanc
+
+spring:
+  application:
+    name: rest-with-spring-boot-and-java-felmanc
