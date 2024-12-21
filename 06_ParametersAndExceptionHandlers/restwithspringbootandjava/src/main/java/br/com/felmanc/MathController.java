@@ -20,11 +20,58 @@ public class MathController {
 			@PathVariable(value = "numberOne") String numberOne,
 			@PathVariable(value = "numberTwo") String numberTwo
 			) throws Exception{
+		return performeOperation(numberOne, numberTwo, Operation.ADDITION);
+	}
+
+	@GetMapping(value = "/sub/{numberOne}/{numberTwo}")
+	public Double sub(
+			@PathVariable(value = "numberOne") String numberOne,
+			@PathVariable(value = "numberTwo") String numberTwo
+			) throws Exception{
+		return performeOperation(numberOne, numberTwo, Operation.SUBTRACT);
+	}
+
+	@GetMapping(value = "/mul/{numberOne}/{numberTwo}")
+	public Double mul(
+			@PathVariable(value = "numberOne") String numberOne,
+			@PathVariable(value = "numberTwo") String numberTwo
+			) throws Exception {
+		return performeOperation(numberOne, numberTwo, Operation.MULTIPLICATION);
+	}
+
+	@GetMapping(value = "/div/{numberOne}/{numberTwo}")
+	public Double div(
+			@PathVariable(value = "numberOne") String numberOne,
+			@PathVariable(value = "numberTwo") String numberTwo
+			) throws Exception {
+		return performeOperation(numberOne, numberTwo, Operation.DIVISION);
+	}
+
+	private Double performeOperation(
+			String numberOne, String numberTwo, Operation operation)
+			throws Exception {
 		if(!isNumeric(numberOne) || !isNumeric(numberTwo)) {
 			throw new UnsupportedMathOperationException("Please set a numeric value");
 		}
 		
-		return convertToDouble(numberOne)+ convertToDouble(numberTwo);
+		Double num1 = convertToDouble(numberOne);
+		Double num2 = convertToDouble(numberTwo);
+		
+		switch(operation) {
+		case ADDITION:
+			return num1 + num2;
+		case SUBTRACT:
+			return num1 - num2;
+		case MULTIPLICATION:
+			return num1 * num2;
+		case DIVISION:
+			if(num2 == 0) {
+				throw new UnsupportedMathOperationException("Unsupported operation: Division by zero is not allowed");
+			}
+			return num1 / num2;
+		default:
+			throw new UnsupportedMathOperationException("Unsupported operation");
+		}
 	}
 
 	private Double convertToDouble(String strNumber) {
@@ -40,5 +87,9 @@ public class MathController {
 		String number = strNumber.replaceAll(",", ".");
 				
 		return number.matches("[-+]?[0-9]*\\.?[0-9]+");
+	}
+	
+	private enum Operation {
+		ADDITION, SUBTRACT, MULTIPLICATION, DIVISION 
 	}
 }
