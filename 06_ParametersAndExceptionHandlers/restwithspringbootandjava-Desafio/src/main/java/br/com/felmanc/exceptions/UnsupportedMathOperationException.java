@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 
 //@ResponseStatus:
 //	Indica que será retornado um código de erro
-// 	Deve ser o maesmo erro tratado em handleBadRequestExceptions
+// 	Deve ser o mesmo erro tratado em handleBadRequestExceptions
 @ResponseStatus(HttpStatus.BAD_REQUEST)
 public class UnsupportedMathOperationException extends RuntimeException {
 
