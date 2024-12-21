@@ -10,8 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 // o Localhost:8080 acessa a página raiz do Spring Boot
 // dentro da página raiz, busca por controllers: @RestController
 // depois procura por /greeting: @RequestMapping("/greeting")
-//	@RequestMapping: mapeia uma requisição para um método
-// @RequestParam: é um tipo de parâmetro opcional (query param/ query string)
+
 
 
 //@Controller:
@@ -23,6 +22,9 @@ import org.springframework.web.bind.annotation.RestController;
 public class GreetingController {
 	private static final String template = "Hello, %s!";
 	private static AtomicLong counter = new AtomicLong(); // para Mockar um id
+
+//	@RequestMapping: mapeia uma requisição para um método
+// @RequestParam: é um tipo de parâmetro opcional (query param/ query string)
 	
 	@RequestMapping("/greeting")
 	public Greeting greeting(
