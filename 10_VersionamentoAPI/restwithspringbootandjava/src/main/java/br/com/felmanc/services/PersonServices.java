@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 
 import br.com.felmanc.exceptions.ResourceNotFoundException;
 import br.com.felmanc.mapper.DozerMapper;
+import br.com.felmanc.mapper.custom.PersonMapper;
 import br.com.felmanc.model.Person;
 import br.com.felmanc.repositories.PersonRepository;
 import br.com.felmanc.vo.v1.PersonVO;
@@ -21,6 +22,9 @@ public class PersonServices {
 
 	@Autowired
 	PersonRepository repository;
+	
+	@Autowired
+	PersonMapper mapper;
 
 	public List<PersonVO> findAll() {
 		logger.info("Find all people!");
@@ -57,9 +61,9 @@ public class PersonServices {
 		logger.info("Creating one person with V2!");
 		
 		// Converte um PersonVO para uma entidade do tipo Person
-		var entity = DozerMapper.parseObject(personVO, Person.class);
+		var entity = mapper.convertVOToEntity(personVO);
 		// Salva a entidade no banco de dados, pega o resultado e converte para um Person VO
-		var vo = DozerMapper.parseObject(repository.save(entity), PersonVO.class);
+		var vo = mapper.convertEntityToVO(repository.save(entity));
 		
 		return vo;
 	}

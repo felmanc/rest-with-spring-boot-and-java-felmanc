@@ -44,7 +44,7 @@ public class PersonController {
 	}
 
 	@PostMapping(path = "/V2", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-	public PersonVO createV2(@RequestBody PersonVOV2 person)/* throws Exception */ {
+	public PersonVOV2 createV2(@RequestBody PersonVOV2 person)/* throws Exception */ {
 		return service.createV2(person);
 	}
 	
