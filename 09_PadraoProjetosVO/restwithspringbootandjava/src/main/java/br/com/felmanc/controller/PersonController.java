@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import br.com.felmanc.services.PersonServices;
 import br.com.felmanc.vo.v1.PersonVO;
+import br.com.felmanc.vo.v2.PersonVOV2;
 
 
 //@RestController: retorna um objeto e
@@ -42,6 +43,11 @@ public class PersonController {
 		return service.create(person);
 	}
 
+	@PostMapping(path = "/V2", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	public PersonVO createV2(@RequestBody PersonVOV2 person)/* throws Exception */ {
+		return service.createV2(person);
+	}
+	
 	@PutMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	public PersonVO update(@RequestBody PersonVO person)/* throws Exception */ {
 		return service.update(person);
