@@ -11,7 +11,6 @@ import br.com.felmanc.mapper.DozerMapper;
 import br.com.felmanc.model.Person;
 import br.com.felmanc.repositories.PersonRepository;
 import br.com.felmanc.vo.v1.PersonVO;
-import br.com.felmanc.vo.v2.PersonVOV2;
 
 // @Service: Objeto que será injetado em Runtime na aplicação
 @Service
@@ -52,18 +51,6 @@ public class PersonServices {
 		return vo;
 	}
 
-	// CreateV2: Recebe um PersonVO
-	public PersonVOV2 createV2(PersonVOV2 personVO) {
-		logger.info("Creating one person with V2!");
-		
-		// Converte um PersonVO para uma entidade do tipo Person
-		var entity = DozerMapper.parseObject(personVO, Person.class);
-		// Salva a entidade no banco de dados, pega o resultado e converte para um Person VO
-		var vo = DozerMapper.parseObject(repository.save(entity), PersonVO.class);
-		
-		return vo;
-	}
-	
 	public PersonVO update(PersonVO personVO) {
 		logger.info("Creating one person!");
 
