@@ -21,7 +21,7 @@ import br.com.felmanc.vo.v1.PersonVO;
 //@RestController: retorna um objeto e
 //  o objeto e os dados do objeto são escritos diretamente na resposta HTTP, como JSON ou XML
 @RestController
-@RequestMapping("/person")
+@RequestMapping("/api/person/v1")
 public class PersonController {
 
 	@Autowired
