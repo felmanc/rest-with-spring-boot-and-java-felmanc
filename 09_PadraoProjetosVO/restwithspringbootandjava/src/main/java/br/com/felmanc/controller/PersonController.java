@@ -14,8 +14,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import br.com.felmanc.model.Person;
 import br.com.felmanc.services.PersonServices;
+import br.com.felmanc.vo.v1.PersonVO;
+
 
 //@RestController: retorna um objeto e
 //  o objeto e os dados do objeto são escritos diretamente na resposta HTTP, como JSON ou XML
@@ -27,22 +28,22 @@ public class PersonController {
 	private PersonServices service;
 
 	@GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
-	public List<Person> findAll() {
+	public List<PersonVO> findAll() {
 		return service.findAll();
 	}
 
 	@GetMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
-	public Person findById(@PathVariable(/*value = "id"*/) Long id)/* throws Exception */ {
+	public PersonVO findById(@PathVariable(/*value = "id"*/) Long id)/* throws Exception */ {
 		return service.findById(id);
 	}
 
 	@PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-	public Person create(@RequestBody Person person)/* throws Exception */ {
+	public PersonVO create(@RequestBody PersonVO person)/* throws Exception */ {
 		return service.create(person);
 	}
 
 	@PutMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-	public Person update(@RequestBody Person person)/* throws Exception */ {
+	public PersonVO update(@RequestBody PersonVO person)/* throws Exception */ {
 		return service.update(person);
 	}
 
