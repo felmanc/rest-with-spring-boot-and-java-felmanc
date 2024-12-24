@@ -14,8 +14,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import br.com.felmanc.data.vo.v1.PersonVO;
 import br.com.felmanc.services.PersonServices;
-import br.com.felmanc.vo.v1.PersonVO;
 
 
 //@RestController: retorna um objeto e
@@ -33,7 +33,7 @@ public class PersonController {
 	}
 
 	@GetMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
-	public PersonVO findById(/*@PathVariable(value = "id")*/ Long id)/* throws Exception */ {
+	public PersonVO findById(@PathVariable/*(value = "id")*/ Long id)/* throws Exception */ {
 		return service.findById(id);
 	}
 
@@ -48,7 +48,7 @@ public class PersonController {
 	}
 
 	@DeleteMapping(value = "/{id}")
-	public ResponseEntity<?> delete(/*@PathVariable(value = "id")*/ Long id) {
+	public ResponseEntity<?> delete(@PathVariable/*(value = "id")*/ Long id) {
 		service.delete(id);
 		return ResponseEntity.noContent().build();
 	}

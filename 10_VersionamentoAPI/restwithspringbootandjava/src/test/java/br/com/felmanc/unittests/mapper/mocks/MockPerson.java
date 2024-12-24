@@ -3,8 +3,8 @@ package br.com.felmanc.unittests.mapper.mocks;
 import java.util.ArrayList;
 import java.util.List;
 
+import br.com.felmanc.data.vo.v1.PersonVO;
 import br.com.felmanc.model.Person;
-import br.com.felmanc.vo.v1.PersonVO;
 
 public class MockPerson {
 

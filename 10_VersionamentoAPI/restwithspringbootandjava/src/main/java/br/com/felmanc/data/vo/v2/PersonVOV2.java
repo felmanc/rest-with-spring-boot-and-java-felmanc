@@ -1,4 +1,4 @@
-package br.com.felmanc.vo.v2;
+package br.com.felmanc.data.vo.v2;
 
 import java.io.Serializable;
 import java.util.Date;

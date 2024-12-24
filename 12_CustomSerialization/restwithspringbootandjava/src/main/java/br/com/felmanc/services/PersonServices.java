@@ -6,11 +6,11 @@ import java.util.logging.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import br.com.felmanc.data.vo.v1.PersonVO;
 import br.com.felmanc.exceptions.ResourceNotFoundException;
 import br.com.felmanc.mapper.DozerMapper;
 import br.com.felmanc.model.Person;
 import br.com.felmanc.repositories.PersonRepository;
-import br.com.felmanc.vo.v1.PersonVO;
 
 // @Service: Objeto que será injetado em Runtime na aplicação
 @Service
