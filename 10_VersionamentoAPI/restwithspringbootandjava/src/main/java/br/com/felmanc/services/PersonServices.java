@@ -39,9 +39,7 @@ public class PersonServices {
 		var entity = repository.findById(id)
 				.orElseThrow(() -> new ResourceNotFoundException("No records found for this ID: " + id));
 		
-		DozerMapper.parseObject(entity, PersonVO.class);
-		
-		return null;
+		return DozerMapper.parseObject(entity, PersonVO.class);
 	}
 
 	// Create: Recebe um PersonVO
