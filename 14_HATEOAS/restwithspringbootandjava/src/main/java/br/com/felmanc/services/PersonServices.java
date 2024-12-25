@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 
 import br.com.felmanc.controller.PersonController;
 import br.com.felmanc.data.vo.v1.PersonVO;
+import br.com.felmanc.exceptions.RequiredObjectIsNullException;
 import br.com.felmanc.exceptions.ResourceNotFoundException;
 import br.com.felmanc.mapper.DozerMapper;
 import br.com.felmanc.model.Person;
@@ -40,6 +41,7 @@ public class PersonServices {
 		logger.info("Find one person! id " + id);
 
 		// Entidade: é o que o JPA/Hibernate sabe trabalhar
+		// Vai ao banco de dados e busca o objeto por id
 		var entity = repository.findById(id)
 				.orElseThrow(() -> new ResourceNotFoundException("No records found for this ID: " + id));
 		
@@ -52,6 +54,9 @@ public class PersonServices {
 
 	// Create: Recebe um PersonVO
 	public PersonVO create(PersonVO personVO) {
+
+		if(personVO == null) throw new RequiredObjectIsNullException();
+		
 		logger.info("Creating one person!");
 
 		// Converte um PersonVO para uma entidade do tipo Person
@@ -65,7 +70,10 @@ public class PersonServices {
 	}
 
 	public PersonVO update(PersonVO personVO) {
-		logger.info("Creating one person!");
+
+		if(personVO == null) throw new RequiredObjectIsNullException();
+		
+		logger.info("Updating one person!");
 
 		// PersonVO
 		var entity = repository.findById(personVO.getKey())
