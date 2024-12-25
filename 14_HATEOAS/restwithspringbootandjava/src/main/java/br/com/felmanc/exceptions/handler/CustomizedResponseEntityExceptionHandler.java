@@ -11,6 +11,7 @@ import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
 import br.com.felmanc.exceptions.ExceptionResponse;
+import br.com.felmanc.exceptions.RequiredObjectIsNullException;
 import br.com.felmanc.exceptions.ResourceNotFoundException;
 
 // @ControllerAdvice: Tramento global
