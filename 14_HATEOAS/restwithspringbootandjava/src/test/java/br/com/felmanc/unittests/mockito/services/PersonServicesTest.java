@@ -4,8 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-//import static org.junit.jupiter.api.Assertions.fail;
-
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
@@ -18,7 +17,6 @@ import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -134,18 +132,14 @@ class PersonServicesTest {
 
 	@Test
 	void testCreate() {
-		Person entity = input.mockEntity(1);
-		
-		// entity é obtida sem o id
-		// criado persisted para representar o entity com id
-		Person persisted = entity;
+		Person persisted = input.mockEntity(1);
 		persisted.setId(1L);
 		
 		PersonVO vo = input.mockVO(1);
 		vo.setKey(1L);
 		
 		// No Create de Person Service, o save é interceptado pelo Mockito, que devolve a entity mockada
-		when(repository.save(entity)).thenReturn(persisted);
+		when(repository.save(any(Person.class))).thenReturn(persisted);
 		
 		var result = service.create(vo);
 		
