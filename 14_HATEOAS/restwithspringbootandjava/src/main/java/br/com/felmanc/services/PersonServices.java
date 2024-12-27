@@ -22,8 +22,13 @@ public class PersonServices {
 
 	private Logger logger = Logger.getLogger(PersonServices.class.getName());
 
-	@Autowired
+//	@Autowired
 	PersonRepository repository;
+	
+	// No lugar do @Autowired pode injetar dependencia pelo construtor: 
+	public PersonServices(PersonRepository repository) {
+		this.repository = repository;
+	}
 
 	public List<PersonVO> findAll() {
 		logger.info("Find all people!");

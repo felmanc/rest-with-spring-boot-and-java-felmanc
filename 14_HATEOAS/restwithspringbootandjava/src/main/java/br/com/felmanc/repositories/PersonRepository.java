@@ -5,5 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import br.com.felmanc.model.Person;
 
+//É a classe que acessa o Banco de dados
+
 //@Repository
 public interface PersonRepository extends JpaRepository<Person, Long> {}

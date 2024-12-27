@@ -24,8 +24,13 @@ import br.com.felmanc.services.PersonServices;
 @RequestMapping("/api/person/v1")
 public class PersonController {
 
-	@Autowired
+	//@Autowired
 	private PersonServices service;
+	
+	// Injeção de dependência sem @Autowired
+	public PersonController(PersonServices service) {
+		this.service = service;
+	}
 
 	@GetMapping(
 			produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_YAML_VALUE})
