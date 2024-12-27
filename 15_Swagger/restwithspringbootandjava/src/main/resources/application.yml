@@ -18,3 +18,7 @@ spring:
         #enable_lazy_load_no_trans: true
   #jta:
     #enable: true
+springdoc:
+  pathsToMatch: /api/**/v1/**
+  swagger-ui:
+    use-root-path: true
