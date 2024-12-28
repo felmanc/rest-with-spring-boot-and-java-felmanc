@@ -33,8 +33,10 @@ public class PersonServices {
 	public List<PersonVO> findAll() {
 		logger.info("Find all people!");
 
+		// Obtém a lista de PersonVO
 		var persons = DozerMapper.parseListObjects(repository.findAll(), PersonVO.class);
 		
+		// Adiciona um self link a cada PersonVO
 		persons
 			.stream()
 			.forEach(p -> p.add(linkTo(methodOn(PersonController.class).findById(p.getKey())).withSelfRel()));

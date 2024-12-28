@@ -5,7 +5,9 @@ import java.util.List;
 
 import org.modelmapper.ModelMapper;
 
+import br.com.felmanc.data.vo.v1.BookVO;
 import br.com.felmanc.data.vo.v1.PersonVO;
+import br.com.felmanc.model.Book;
 import br.com.felmanc.model.Person;
 
 
@@ -22,6 +24,16 @@ public class DozerMapper {
 				PersonVO.class,
 				Person.class)
 		.addMapping(PersonVO::getKey, Person::setId);
+
+		mapper.createTypeMap(
+				Book.class,
+				BookVO.class)
+		.addMapping(Book::getId, BookVO::setKey);
+		
+		mapper.createTypeMap(
+				BookVO.class,
+				Book.class)
+		.addMapping(BookVO::getKey, Book::setId);	
 	}
 	
 	public static <O, D> D parseObject(O origin, Class<D> destination) {

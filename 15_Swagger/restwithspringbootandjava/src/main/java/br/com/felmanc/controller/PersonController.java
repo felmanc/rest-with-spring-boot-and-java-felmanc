@@ -82,8 +82,8 @@ public class PersonController {
 	@PostMapping(
 			consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_YAML_VALUE},
 			produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_YAML_VALUE})
-	public PersonVO create(@RequestBody PersonVO person)/* throws Exception */ {
-		return service.create(person);
+	public PersonVO create(@RequestBody PersonVO vo)/* throws Exception */ {
+		return service.create(vo);
 	}
 
 	@PutMapping(
