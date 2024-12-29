@@ -79,6 +79,18 @@ public class BookController {
 	@PostMapping(
 			consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_YAML_VALUE},
 			produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_YAML_VALUE})
+	@Operation(summary = "Adds a new Book",
+		description = "Adds a new Book by passing in a JSON, XML or YML representation of the book!",
+		tags = {"Book"},
+		responses = {
+			@ApiResponse(description = "Success", responseCode = "200",
+				content = @Content(schema = @Schema(implementation = BookVO.class))
+			),
+			@ApiResponse(description = "Bad Request", responseCode = "400", content = @Content),
+			@ApiResponse(description = "Unauthorized", responseCode = "401", content = @Content),
+			@ApiResponse(description = "Internal Error", responseCode = "500", content = @Content),
+		}
+	)
 	public BookVO create(@RequestBody BookVO vo) {
 		return service.create(vo);
 	}
