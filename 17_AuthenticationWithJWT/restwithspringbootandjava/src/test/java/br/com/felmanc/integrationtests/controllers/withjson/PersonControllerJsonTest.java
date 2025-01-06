@@ -1,4 +1,4 @@
-package br.com.felmanc.integrationtests.controller.withjson;
+package br.com.felmanc.integrationtests.controllers.withjson;
 
 import static io.restassured.RestAssured.given;
 import static org.junit.jupiter.api.Assertions.assertEquals;
