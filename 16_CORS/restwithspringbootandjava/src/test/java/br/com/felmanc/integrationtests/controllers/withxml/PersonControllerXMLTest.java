@@ -15,6 +15,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import br.com.felmanc.configs.TestConfigs;
@@ -193,6 +194,156 @@ public class PersonControllerXMLTest extends AbstractIntegrationTest{
 		assertEquals("Invalid CORS request", content);
 
 	}	
+	
+	@Test
+	@Order(5)
+	public void testUpdateNotFound() throws JsonMappingException, JsonProcessingException {
+		MockPerson();
+		
+		PersonVO update = new PersonVO();
+		
+		update.setId(22L);
+		update.setFirstName(person.getFirstName());
+		update.setLastName(person.getLastName());
+		update.setAddress(person.getAddress());
+		update.setGender(person.getGender());	
+		
+		specification = new RequestSpecBuilder()
+				.addHeader(TestConfigs.HEADER_PARAM_ORIGIN, TestConfigs.ORIGIN_FELMANC)
+				.setBasePath("/api/person/v1")
+				.setPort(TestConfigs.SERVER_PORT)
+				.addFilter(new RequestLoggingFilter(LogDetail.ALL))
+				.addFilter(new ResponseLoggingFilter(LogDetail.ALL))
+				.build();
+		
+		var content = given().spec(specification)
+					.contentType(TestConfigs.CONTENT_TYPE_JSON)
+					.body(update)
+					.when()
+					.put()
+				.then()
+					.statusCode(404)
+					.extract()
+					.body()
+					.asString();
+		
+		assertNotNull(content);
+		
+		ObjectMapper mapper = new ObjectMapper();
+		JsonNode rootNode = mapper.readTree(content);
+		String message = rootNode.get("message").asText();
+		
+		assertEquals("No records found for this ID: 22", message);
+	}	
+	
+	
+	@Test
+	@Order(6)
+	public void testUpdateWithNoContent() throws JsonMappingException, JsonProcessingException {
+		
+		specification = new RequestSpecBuilder()
+				.addHeader(TestConfigs.HEADER_PARAM_ORIGIN, TestConfigs.ORIGIN_FELMANC)
+				.setBasePath("/api/person/v1")
+				.setPort(TestConfigs.SERVER_PORT)
+				.addFilter(new RequestLoggingFilter(LogDetail.ALL))
+				.addFilter(new ResponseLoggingFilter(LogDetail.ALL))
+				.build();
+		
+		var content = given().spec(specification)
+				.contentType(TestConfigs.CONTENT_TYPE_JSON)
+					.body("")
+					.when()
+					.put()
+				.then()
+					.statusCode(400)
+				.extract()
+					.body()
+						.asString();
+		
+		assertNotNull(content);
+		assertEquals("{\"type\":\"about:blank\",\"title\":\"Bad Request\",\"status\":400,\"detail\":\"Failed to read request\",\"instance\":\"/api/person/v1\"}", content);
+	}
+
+	@Test
+	@Order(7)
+	public void testUpdate() throws JsonMappingException, JsonProcessingException {
+		MockPerson();
+		
+		PersonVO update = new PersonVO();
+		
+		update.setId(person.getId());
+		update.setFirstName(person.getFirstName() +  "2");
+		update.setLastName(person.getLastName() +  "2");
+		update.setAddress(person.getAddress());
+		update.setGender(person.getGender());
+		
+		specification = new RequestSpecBuilder()
+				.addHeader(TestConfigs.HEADER_PARAM_ORIGIN, TestConfigs.ORIGIN_FELMANC)
+				.setBasePath("/api/person/v1")
+				.setPort(TestConfigs.SERVER_PORT)
+				.addFilter(new RequestLoggingFilter(LogDetail.ALL))
+				.addFilter(new ResponseLoggingFilter(LogDetail.ALL))
+				.build();
+		
+		var content = given().spec(specification)
+				.contentType(TestConfigs.CONTENT_TYPE_JSON)
+					.body(update)
+					.when()
+					.put()
+				.then()
+					.statusCode(200)
+				.extract()
+					.body()
+						.asString();
+		
+		PersonVO persistedPerson = objectMapper.readValue(content, PersonVO.class);
+
+		person = persistedPerson;
+		
+		assertNotNull(persistedPerson);
+		
+		assertNotNull(persistedPerson.getId());
+		assertNotNull(persistedPerson.getFirstName());
+		assertNotNull(persistedPerson.getLastName());
+		assertNotNull(persistedPerson.getAddress());
+		assertNotNull(persistedPerson.getGender());
+		
+		assertTrue(persistedPerson.getId() > 0);
+
+		assertEquals("Richard2", persistedPerson.getFirstName());
+		assertEquals("Stallman2", persistedPerson.getLastName());
+		assertEquals("New York City, New York, US", persistedPerson.getAddress());
+		assertEquals("Male", persistedPerson.getGender());
+	}
+
+	@Test
+	@Order(8)
+	public void testDelete() throws JsonMappingException, JsonProcessingException {
+		MockPerson();
+		
+		specification = new RequestSpecBuilder()
+				.addHeader(TestConfigs.HEADER_PARAM_ORIGIN, TestConfigs.ORIGIN_FELMANC)
+				.setBasePath("/api/person/v1")
+				.setPort(TestConfigs.SERVER_PORT)
+				.addFilter(new RequestLoggingFilter(LogDetail.ALL))
+				.addFilter(new ResponseLoggingFilter(LogDetail.ALL))
+				.build();
+		
+		var content = given().spec(specification)
+				.contentType(TestConfigs.CONTENT_TYPE_XML)
+					.pathParam("id", person.getId())
+					.body(person)
+					.when()
+					.delete("{id}")
+				.then()
+					.statusCode(204)
+				.extract()
+					.body()
+						.asString();
+		
+		assertNotNull(content);
+	}
+
 	
 	private void MockPerson() {
 		person.setFirstName("Richard");
