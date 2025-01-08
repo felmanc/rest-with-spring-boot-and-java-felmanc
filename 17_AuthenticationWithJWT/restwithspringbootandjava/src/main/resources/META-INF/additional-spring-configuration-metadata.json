@@ -1,5 +1,17 @@
-{"properties": [{
-  "name": "cors.origin-patterns",
-  "type": "java.lang.String",
-  "description": "A description for 'cors.origin-patterns'"
-}]}
+{"properties": [
+  {
+    "name": "cors.origin-patterns",
+    "type": "java.lang.String",
+    "description": "A description for 'cors.origin-patterns'"
+  },
+  {
+    "name": "security.jwt.token.secret-key",
+    "type": "java.lang.String",
+    "description": "The secret-key'"
+  },
+  {
+    "name": "security.jwt.token.expire-lenght",
+    "type": "java.lang.String",
+    "description": "The lenght of time duration of the token"
+  }
+]}

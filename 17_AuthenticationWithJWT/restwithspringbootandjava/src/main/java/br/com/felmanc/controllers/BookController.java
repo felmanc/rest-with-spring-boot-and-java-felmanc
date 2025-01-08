@@ -1,4 +1,4 @@
-package br.com.felmanc.controller;
+package br.com.felmanc.controllers;
 
 
 import java.util.List;

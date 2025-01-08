@@ -8,7 +8,7 @@ import java.util.logging.Logger;
 
 import org.springframework.stereotype.Service;
 
-import br.com.felmanc.controller.BookController;
+import br.com.felmanc.controllers.BookController;
 import br.com.felmanc.data.vo.v1.BookVO;
 import br.com.felmanc.exceptions.RequiredObjectIsNullException;
 import br.com.felmanc.exceptions.ResourceNotFoundException;

@@ -13,7 +13,7 @@ public class OpenAPIConfig {
 	OpenAPI customOpenAPI() {
 		return new OpenAPI()
 				.info(new Info()
-						.title("Restful with Java 23 and Spring Boot 3")
+						.title("RestfulwithJava23_SpringBoot3_JWT")
 						.version("v1")
 						.description("Some description about this API")
 						.termsOfService("htts://")

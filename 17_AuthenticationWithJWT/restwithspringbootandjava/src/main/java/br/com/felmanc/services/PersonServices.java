@@ -8,7 +8,7 @@ import java.util.logging.Logger;
 
 import org.springframework.stereotype.Service;
 
-import br.com.felmanc.controller.PersonController;
+import br.com.felmanc.controllers.PersonController;
 import br.com.felmanc.data.vo.v1.PersonVO;
 import br.com.felmanc.exceptions.RequiredObjectIsNullException;
 import br.com.felmanc.exceptions.ResourceNotFoundException;
