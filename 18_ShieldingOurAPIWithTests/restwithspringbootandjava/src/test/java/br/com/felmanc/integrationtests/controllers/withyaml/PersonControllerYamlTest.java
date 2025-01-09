@@ -21,7 +21,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import br.com.felmanc.configs.TestConfigs;
 import br.com.felmanc.integrationtests.controllers.withyaml.mapper.YMLMapper;
 import br.com.felmanc.integrationtests.testcontainers.AbstractIntegrationTest;
+import br.com.felmanc.integrationtests.vo.AccountCredentialsVO;
 import br.com.felmanc.integrationtests.vo.PersonVO;
+import br.com.felmanc.integrationtests.vo.TokenVO;
 import io.restassured.builder.RequestSpecBuilder;
 import io.restassured.config.EncoderConfig;
 import io.restassured.config.RestAssuredConfig;
@@ -56,21 +58,53 @@ public class PersonControllerYamlTest extends AbstractIntegrationTest {
 	}
 
 	@Test
+	@Order(0)
+	public void authorization() throws JsonMappingException, JsonProcessingException {
+		AccountCredentialsVO user = new AccountCredentialsVO("leandro", "admin123");
+
+		var accessToken = given()
+				.basePath("/auth/signin")
+				.port(TestConfigs.SERVER_PORT)
+				.contentType(TestConfigs.CONTENT_TYPE_JSON)
+					.body(user)
+					.when()
+					.post()
+				.then()
+					.statusCode(200)
+				.extract()
+					.body()
+						.as(TokenVO.class)
+						.getAccessToken();
+
+		specification = new RequestSpecBuilder()
+				.addHeader(TestConfigs.HEADER_PARAM_AUTHORIZATION, "Bearer " + accessToken)
+				.setBasePath("/api/person/v1")
+				.setPort(TestConfigs.SERVER_PORT)
+				.addFilter(new RequestLoggingFilter(LogDetail.ALL))
+				.addFilter(new ResponseLoggingFilter(LogDetail.ALL))
+				.build();
+	}
+
+	@Test
 	@Order(1)
 	public void testCreate() throws JsonMappingException, JsonProcessingException {
-		MockPerson();
-
-		specification = new RequestSpecBuilder().addHeader(TestConfigs.HEADER_PARAM_ORIGIN, TestConfigs.ORIGIN_FELMANC)
-				.setBasePath("/api/person/v1").setPort(TestConfigs.SERVER_PORT)
-				.addFilter(new RequestLoggingFilter(LogDetail.ALL)).addFilter(new ResponseLoggingFilter(LogDetail.ALL))
-				.build();
+		mockPerson();
 
 		PersonVO persistedPerson = given()
 				.config(RestAssuredConfig.config()
 						.encoderConfig(EncoderConfig.encoderConfig()
 								.encodeContentTypeAs(MediaType.APPLICATION_YAML_VALUE, ContentType.TEXT)))
-				.spec(specification).contentType(MediaType.APPLICATION_YAML_VALUE).body(person, objectMapper).when()
-				.post().then().statusCode(200).extract().body().as(PersonVO.class, objectMapper);
+				.spec(specification)
+				.contentType(MediaType.APPLICATION_YAML_VALUE)
+				.header(TestConfigs.HEADER_PARAM_ORIGIN, TestConfigs.ORIGIN_FELMANC)
+				.body(person, objectMapper)
+				.when()
+				.post()
+				.then()
+				.statusCode(200)
+				.extract()
+				.body()
+				.as(PersonVO.class, objectMapper);
 
 		person = persistedPerson;
 
@@ -93,19 +127,23 @@ public class PersonControllerYamlTest extends AbstractIntegrationTest {
 	@Test
 	@Order(2)
 	public void testCreateWithWrongOrigin() throws JsonMappingException, JsonProcessingException {
-		MockPerson();
-
-		specification = new RequestSpecBuilder().addHeader(TestConfigs.HEADER_PARAM_ORIGIN, TestConfigs.ORIGIN_SEMERU)
-				.setBasePath("/api/person/v1").setPort(TestConfigs.SERVER_PORT)
-				.addFilter(new RequestLoggingFilter(LogDetail.ALL)).addFilter(new ResponseLoggingFilter(LogDetail.ALL))
-				.build();
+		mockPerson();
 
 		var content = given()
 				.config(RestAssuredConfig.config()
 						.encoderConfig(EncoderConfig.encoderConfig()
 								.encodeContentTypeAs(MediaType.APPLICATION_YAML_VALUE, ContentType.TEXT)))
-				.spec(specification).contentType(TestConfigs.CONTENT_TYPE_YAML).body(person, objectMapper).when().post()
-				.then().statusCode(403).extract().body().asString();
+				.spec(specification)
+				.contentType(TestConfigs.CONTENT_TYPE_YAML)
+				.header(TestConfigs.HEADER_PARAM_ORIGIN, TestConfigs.ORIGIN_SEMERU)
+				.body(person, objectMapper)
+				.when()
+				.post()
+				.then()
+				.statusCode(403)
+				.extract()
+				.body()
+				.asString();
 
 		assertNotNull(content);
 		assertEquals("Invalid CORS request", content);
@@ -114,19 +152,23 @@ public class PersonControllerYamlTest extends AbstractIntegrationTest {
 	@Test
 	@Order(3)
 	public void testFindById() throws JsonMappingException, JsonProcessingException {
-		MockPerson();
-
-		specification = new RequestSpecBuilder().addHeader(TestConfigs.HEADER_PARAM_ORIGIN, TestConfigs.ORIGIN_FELMANC)
-				.setBasePath("/api/person/v1").setPort(TestConfigs.SERVER_PORT)
-				.addFilter(new RequestLoggingFilter(LogDetail.ALL)).addFilter(new ResponseLoggingFilter(LogDetail.ALL))
-				.build();
+		mockPerson();
 
 		var persistedPerson = given()
 				.config(RestAssuredConfig.config()
 						.encoderConfig(EncoderConfig.encoderConfig()
 								.encodeContentTypeAs(MediaType.APPLICATION_YAML_VALUE, ContentType.TEXT)))
-				.spec(specification).contentType(TestConfigs.CONTENT_TYPE_YAML).pathParam("id", person.getId())
-				.body(person, objectMapper).when().get("{id}").then().statusCode(200).extract().body()
+				.spec(specification)
+				.contentType(TestConfigs.CONTENT_TYPE_YAML)
+				.header(TestConfigs.HEADER_PARAM_ORIGIN, TestConfigs.ORIGIN_FELMANC)
+				.pathParam("id", person.getId())
+				.body(person, objectMapper)
+				.when()
+				.get("{id}")
+				.then()
+				.statusCode(200)
+				.extract()
+				.body()
 				.as(PersonVO.class, objectMapper);
 
 		person = persistedPerson;
@@ -150,19 +192,24 @@ public class PersonControllerYamlTest extends AbstractIntegrationTest {
 	@Test
 	@Order(4)
 	public void testFindByIdWithWrongOrigin() throws JsonMappingException, JsonProcessingException {
-		MockPerson();
-
-		specification = new RequestSpecBuilder().addHeader(TestConfigs.HEADER_PARAM_ORIGIN, TestConfigs.ORIGIN_SEMERU)
-				.setBasePath("/api/person/v1").setPort(TestConfigs.SERVER_PORT)
-				.addFilter(new RequestLoggingFilter(LogDetail.ALL)).addFilter(new ResponseLoggingFilter(LogDetail.ALL))
-				.build();
+		mockPerson();
 
 		var content = given()
 				.config(RestAssuredConfig.config()
 						.encoderConfig(EncoderConfig.encoderConfig()
 								.encodeContentTypeAs(MediaType.APPLICATION_YAML_VALUE, ContentType.TEXT)))
-				.spec(specification).contentType(TestConfigs.CONTENT_TYPE_YAML).pathParam("id", person.getId())
-				.body(person, objectMapper).when().get("{id}").then().statusCode(403).extract().body().asString();
+				.spec(specification)
+				.contentType(TestConfigs.CONTENT_TYPE_YAML)
+				.header(TestConfigs.HEADER_PARAM_ORIGIN, TestConfigs.ORIGIN_SEMERU)
+				.pathParam("id", person.getId())
+				.body(person, objectMapper)
+				.when()
+				.get("{id}")
+				.then()
+				.statusCode(403)
+				.extract()
+				.body()
+				.asString();
 
 		assertNotNull(content);
 		assertEquals("Invalid CORS request", content);
@@ -171,7 +218,7 @@ public class PersonControllerYamlTest extends AbstractIntegrationTest {
 	@Test
 	@Order(5)
 	public void testUpdateNotFound() throws JsonMappingException, JsonProcessingException {
-		MockPerson();
+		mockPerson();
 
 		PersonVO update = new PersonVO();
 
@@ -181,17 +228,21 @@ public class PersonControllerYamlTest extends AbstractIntegrationTest {
 		update.setAddress(person.getAddress());
 		update.setGender(person.getGender());
 
-		specification = new RequestSpecBuilder().addHeader(TestConfigs.HEADER_PARAM_ORIGIN, TestConfigs.ORIGIN_FELMANC)
-				.setBasePath("/api/person/v1").setPort(TestConfigs.SERVER_PORT)
-				.addFilter(new RequestLoggingFilter(LogDetail.ALL)).addFilter(new ResponseLoggingFilter(LogDetail.ALL))
-				.build();
-
 		var content = given()
 				.config(RestAssuredConfig.config()
 						.encoderConfig(EncoderConfig.encoderConfig()
 								.encodeContentTypeAs(MediaType.APPLICATION_YAML_VALUE, ContentType.TEXT)))
-				.spec(specification).contentType(TestConfigs.CONTENT_TYPE_YAML).body(update, objectMapper).when().put()
-				.then().statusCode(404).extract().body().asString();
+				.spec(specification)
+				.contentType(TestConfigs.CONTENT_TYPE_YAML)
+				.header(TestConfigs.HEADER_PARAM_ORIGIN, TestConfigs.ORIGIN_FELMANC)
+				.body(update, objectMapper)
+				.when()
+				.put()
+				.then()
+				.statusCode(404)
+				.extract()
+				.body()
+				.asString();
 
 		assertNotNull(content);
 
@@ -206,17 +257,21 @@ public class PersonControllerYamlTest extends AbstractIntegrationTest {
 	@Order(6)
 	public void testUpdateWithNoContent() throws JsonMappingException, JsonProcessingException {
 
-		specification = new RequestSpecBuilder().addHeader(TestConfigs.HEADER_PARAM_ORIGIN, TestConfigs.ORIGIN_FELMANC)
-				.setBasePath("/api/person/v1").setPort(TestConfigs.SERVER_PORT)
-				.addFilter(new RequestLoggingFilter(LogDetail.ALL)).addFilter(new ResponseLoggingFilter(LogDetail.ALL))
-				.build();
-
 		var content = given()
 				.config(RestAssuredConfig.config()
 						.encoderConfig(EncoderConfig.encoderConfig()
 								.encodeContentTypeAs(MediaType.APPLICATION_YAML_VALUE, ContentType.TEXT)))
-				.spec(specification).contentType(TestConfigs.CONTENT_TYPE_YAML).body("", objectMapper).when().put()
-				.then().statusCode(400).extract().body().asString();
+				.spec(specification)
+				.contentType(TestConfigs.CONTENT_TYPE_YAML)
+				.header(TestConfigs.HEADER_PARAM_ORIGIN, TestConfigs.ORIGIN_FELMANC)
+				.body("", objectMapper)
+				.when()
+				.put()
+				.then()
+				.statusCode(400)
+				.extract()
+				.body()
+				.asString();
 
 		assertNotNull(content);
 		assertEquals(
@@ -227,7 +282,7 @@ public class PersonControllerYamlTest extends AbstractIntegrationTest {
 	@Test
 	@Order(7)
 	public void testUpdate() throws JsonMappingException, JsonProcessingException {
-		MockPerson();
+		mockPerson();
 
 		PersonVO update = new PersonVO();
 
@@ -237,17 +292,21 @@ public class PersonControllerYamlTest extends AbstractIntegrationTest {
 		update.setAddress(person.getAddress());
 		update.setGender(person.getGender());
 
-		specification = new RequestSpecBuilder().addHeader(TestConfigs.HEADER_PARAM_ORIGIN, TestConfigs.ORIGIN_FELMANC)
-				.setBasePath("/api/person/v1").setPort(TestConfigs.SERVER_PORT)
-				.addFilter(new RequestLoggingFilter(LogDetail.ALL)).addFilter(new ResponseLoggingFilter(LogDetail.ALL))
-				.build();
-
 		var persistedPerson = given()
 				.config(RestAssuredConfig.config()
 						.encoderConfig(EncoderConfig.encoderConfig()
 								.encodeContentTypeAs(MediaType.APPLICATION_YAML_VALUE, ContentType.TEXT)))
-				.spec(specification).contentType(TestConfigs.CONTENT_TYPE_YAML).body(update, objectMapper).when().put()
-				.then().statusCode(200).extract().body().as(PersonVO.class, objectMapper);
+				.spec(specification)
+				.contentType(TestConfigs.CONTENT_TYPE_YAML)
+				.header(TestConfigs.HEADER_PARAM_ORIGIN, TestConfigs.ORIGIN_FELMANC)
+				.body(update, objectMapper)
+				.when()
+				.put()
+				.then()
+				.statusCode(200)
+				.extract()
+				.body()
+				.as(PersonVO.class, objectMapper);
 
 		person = persistedPerson;
 
@@ -270,24 +329,29 @@ public class PersonControllerYamlTest extends AbstractIntegrationTest {
 	@Test
 	@Order(8)
 	public void testDelete() throws JsonMappingException, JsonProcessingException {
-		MockPerson();
-
-		specification = new RequestSpecBuilder().addHeader(TestConfigs.HEADER_PARAM_ORIGIN, TestConfigs.ORIGIN_FELMANC)
-				.setBasePath("/api/person/v1").setPort(TestConfigs.SERVER_PORT)
-				.addFilter(new RequestLoggingFilter(LogDetail.ALL)).addFilter(new ResponseLoggingFilter(LogDetail.ALL))
-				.build();
+		mockPerson();
 
 		var content = given()
 				.config(RestAssuredConfig.config()
 						.encoderConfig(EncoderConfig.encoderConfig()
 								.encodeContentTypeAs(MediaType.APPLICATION_YAML_VALUE, ContentType.TEXT)))
-				.spec(specification).contentType(TestConfigs.CONTENT_TYPE_YAML).pathParam("id", person.getId())
-				.body(person, objectMapper).when().delete("{id}").then().statusCode(204).extract().body().asString();
+				.spec(specification)
+				.contentType(TestConfigs.CONTENT_TYPE_YAML)
+				.header(TestConfigs.HEADER_PARAM_ORIGIN, TestConfigs.ORIGIN_FELMANC)
+				.pathParam("id", person.getId())
+				.body(person, objectMapper)
+				.when()
+				.delete("{id}")
+				.then()
+				.statusCode(204)
+				.extract()
+				.body()
+				.asString();
 
 		assertNotNull(content);
 	}
 
-	private void MockPerson() {
+	private void mockPerson() {
 		person.setFirstName("Richard");
 		person.setLastName("Stallman");
 		person.setAddress("New York City, New York, US");
