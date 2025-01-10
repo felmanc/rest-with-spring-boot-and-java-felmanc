@@ -21,7 +21,7 @@ public class YMLMapper implements ObjectMapper{
 
 	public YMLMapper() {
 		objectMapper = new com.fasterxml.jackson.databind.ObjectMapper(new YAMLFactory());
-		objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+		objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES); // O YAML será gerado somente com os dados. FAIL_ON_UNKNOWN_PROPERTIES é necessário para desconsiderar a inexistencia do HATEOAS
 		typeFactory = TypeFactory.defaultInstance();
 	}
 
@@ -54,5 +54,4 @@ public class YMLMapper implements ObjectMapper{
 		}
 		return null;
 	}
-
 }

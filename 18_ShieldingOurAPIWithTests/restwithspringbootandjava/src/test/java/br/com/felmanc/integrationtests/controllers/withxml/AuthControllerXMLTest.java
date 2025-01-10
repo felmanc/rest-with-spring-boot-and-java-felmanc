@@ -1,7 +1,7 @@
 package br.com.felmanc.integrationtests.controllers.withxml;
 
 import static io.restassured.RestAssured.given;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import org.junit.jupiter.api.MethodOrderer.OrderAnnotation;
 import org.junit.jupiter.api.Order;
@@ -18,6 +18,7 @@ import br.com.felmanc.integrationtests.vo.AccountCredentialsVO;
 import br.com.felmanc.integrationtests.vo.TokenVO;
 import io.restassured.filter.log.LogDetail;
 import io.restassured.filter.log.RequestLoggingFilter;
+import io.restassured.filter.log.ResponseLoggingFilter;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 @TestMethodOrder(OrderAnnotation.class)
@@ -29,10 +30,21 @@ public class AuthControllerXMLTest extends AbstractIntegrationTest {
 	public void testSignin() throws JsonMappingException, JsonProcessingException {
 		AccountCredentialsVO user = new AccountCredentialsVO("leandro", "admin123");
 
-		tokenVO = given().basePath("/auth/signin").port(TestConfigs.SERVER_PORT)
+		tokenVO = given()
 				.filter(new RequestLoggingFilter(LogDetail.ALL))
-				.contentType(TestConfigs.CONTENT_TYPE_JSON).body(user).when().post().then().statusCode(200).extract()
-				.body().as(TokenVO.class);
+				.filter(new ResponseLoggingFilter(LogDetail.ALL))
+				.basePath("/auth/signin")
+				.port(TestConfigs.SERVER_PORT)
+				.contentType(TestConfigs.CONTENT_TYPE_XML)
+				.accept(TestConfigs.CONTENT_TYPE_XML)
+				.body(user)
+				.when()
+				.post()
+				.then()
+				.statusCode(200)
+				.extract()
+				.body()
+				.as(TokenVO.class);
 
 		assertNotNull(tokenVO.getAccessToken());
 		assertNotNull(tokenVO.getRefreshToken());
@@ -42,11 +54,22 @@ public class AuthControllerXMLTest extends AbstractIntegrationTest {
 	@Order(2)
 	public void testRefresh() throws JsonMappingException, JsonProcessingException {
 
-		var newTokenVO = given().basePath("/auth/refresh").port(TestConfigs.SERVER_PORT)
+		var newTokenVO = given()
 				.filter(new RequestLoggingFilter(LogDetail.ALL))
-				.contentType(TestConfigs.CONTENT_TYPE_XML).pathParam("username", tokenVO.getUsername())
-				.header(TestConfigs.HEADER_PARAM_AUTHORIZATION, "Bearer " + tokenVO.getRefreshToken()).when()
-				.put("{username}").then().statusCode(200).extract().body().as(TokenVO.class);
+				.filter(new ResponseLoggingFilter(LogDetail.ALL))
+				.basePath("/auth/refresh")
+				.port(TestConfigs.SERVER_PORT)
+				.contentType(TestConfigs.CONTENT_TYPE_XML)
+				.accept(TestConfigs.CONTENT_TYPE_XML)
+				.pathParam("username", tokenVO.getUsername())
+				.header(TestConfigs.HEADER_PARAM_AUTHORIZATION, "Bearer " + tokenVO.getRefreshToken())
+				.when()
+				.put("{username}")
+				.then()
+				.statusCode(200)
+				.extract()
+				.body()
+				.as(TokenVO.class);
 
 		assertNotNull(newTokenVO.getAccessToken());
 		assertNotNull(newTokenVO.getRefreshToken());

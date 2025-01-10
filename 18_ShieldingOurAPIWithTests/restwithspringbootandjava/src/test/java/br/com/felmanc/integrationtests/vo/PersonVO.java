@@ -2,9 +2,12 @@ package br.com.felmanc.integrationtests.vo;
 
 import java.io.Serializable;
 
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+
 import jakarta.xml.bind.annotation.XmlRootElement;
 
 @XmlRootElement
+@JsonPropertyOrder({"id", "firstName", "lastName", "address", "gender"})
 public class PersonVO implements Serializable {
 
 	private static final long serialVersionUID = 1L;
@@ -20,8 +23,6 @@ public class PersonVO implements Serializable {
 	private String gender;
 
 	public PersonVO() {}
-
-	
 
 	public Long getId() {
 		return id;

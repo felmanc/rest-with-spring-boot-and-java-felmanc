@@ -1,7 +1,7 @@
 package br.com.felmanc.integrationtests.controllers.withyaml;
 
 import static io.restassured.RestAssured.given;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.MethodOrderer.OrderAnnotation;
@@ -22,6 +22,7 @@ import io.restassured.config.EncoderConfig;
 import io.restassured.config.RestAssuredConfig;
 import io.restassured.filter.log.LogDetail;
 import io.restassured.filter.log.RequestLoggingFilter;
+import io.restassured.filter.log.ResponseLoggingFilter;
 import io.restassured.http.ContentType;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
@@ -42,6 +43,8 @@ public class AuthControllerYamlTest extends AbstractIntegrationTest {
 		AccountCredentialsVO user = new AccountCredentialsVO("leandro", "admin123");
 
 		tokenVO = given()
+				.filter(new RequestLoggingFilter(LogDetail.ALL))
+				.filter(new ResponseLoggingFilter(LogDetail.ALL))
 				.config(
 					RestAssuredConfig
 						.config()
@@ -51,8 +54,8 @@ public class AuthControllerYamlTest extends AbstractIntegrationTest {
 										TestConfigs.CONTENT_TYPE_YAML,
 										ContentType.TEXT)))
 				.basePath("/auth/signin").port(TestConfigs.SERVER_PORT)
-				.filter(new RequestLoggingFilter(LogDetail.ALL))
 				.contentType(TestConfigs.CONTENT_TYPE_YAML)
+				.accept(TestConfigs.CONTENT_TYPE_YAML)
 				.body(user, objectMapper)
 				.when()
 				.post()
@@ -70,9 +73,13 @@ public class AuthControllerYamlTest extends AbstractIntegrationTest {
 	@Order(2)
 	public void testRefresh() throws JsonMappingException, JsonProcessingException {
 
-		var newTokenVO = given().basePath("/auth/refresh").port(TestConfigs.SERVER_PORT)
+		var newTokenVO = given()
 				.filter(new RequestLoggingFilter(LogDetail.ALL))
+				.filter(new ResponseLoggingFilter(LogDetail.ALL))
+				.basePath("/auth/refresh")
+				.port(TestConfigs.SERVER_PORT)
 				.contentType(TestConfigs.CONTENT_TYPE_YAML)
+				.accept(TestConfigs.CONTENT_TYPE_YAML)
 				.pathParam("username", tokenVO.getUsername())
 				.header(TestConfigs.HEADER_PARAM_AUTHORIZATION, "Bearer " + tokenVO.getRefreshToken())
 				.when()

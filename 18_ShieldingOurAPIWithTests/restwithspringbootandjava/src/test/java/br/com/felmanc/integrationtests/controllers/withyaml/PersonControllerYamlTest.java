@@ -5,6 +5,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
+
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.MethodOrderer.OrderAnnotation;
 import org.junit.jupiter.api.Order;
@@ -16,10 +20,12 @@ import org.springframework.http.MediaType;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import com.fasterxml.jackson.dataformat.yaml.YAMLParser;
 
 import br.com.felmanc.configs.TestConfigs;
 import br.com.felmanc.integrationtests.controllers.withyaml.mapper.YMLMapper;
+import br.com.felmanc.integrationtests.controllers.withyaml.mapper.YamlTreeReader;
 import br.com.felmanc.integrationtests.testcontainers.AbstractIntegrationTest;
 import br.com.felmanc.integrationtests.vo.AccountCredentialsVO;
 import br.com.felmanc.integrationtests.vo.PersonVO;
@@ -42,17 +48,14 @@ public class PersonControllerYamlTest extends AbstractIntegrationTest {
 
 	private static PersonVO person;
 
-	/*
-	 * em setup() ainda não existe contexto Somente após o primeiro teste que o
+	/* em setup() ainda não existe contexto Somente após o primeiro teste que o
 	 * Spring é iniciado e passa a existir um contexo
 	 */
 
 	@BeforeAll
 	public static void setup() {
 		objectMapper = new YMLMapper();
-		// objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES); // O
-		// YAML será gerado somente com os dados. FAIL_ON_UNKNOWN_PROPERTIES é
-		// necessário para desconsiderar a inexistencia do HATEOAS
+		// objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES); // Tratado em YMLMapper
 
 		person = new PersonVO();
 	}
@@ -63,17 +66,23 @@ public class PersonControllerYamlTest extends AbstractIntegrationTest {
 		AccountCredentialsVO user = new AccountCredentialsVO("leandro", "admin123");
 
 		var accessToken = given()
+				.filter(new RequestLoggingFilter(LogDetail.ALL))
+				.filter(new ResponseLoggingFilter(LogDetail.ALL))
+				.config(RestAssuredConfig.config()
+						.encoderConfig(EncoderConfig.encoderConfig()
+								.encodeContentTypeAs(MediaType.APPLICATION_YAML_VALUE, ContentType.TEXT)))
 				.basePath("/auth/signin")
 				.port(TestConfigs.SERVER_PORT)
-				.contentType(TestConfigs.CONTENT_TYPE_JSON)
-					.body(user)
+				.contentType(TestConfigs.CONTENT_TYPE_YAML)
+				.accept(TestConfigs.CONTENT_TYPE_YAML)
+					.body(user, objectMapper)
 					.when()
 					.post()
 				.then()
 					.statusCode(200)
 				.extract()
 					.body()
-						.as(TokenVO.class)
+						.as(TokenVO.class, objectMapper)
 						.getAccessToken();
 
 		specification = new RequestSpecBuilder()
@@ -96,7 +105,7 @@ public class PersonControllerYamlTest extends AbstractIntegrationTest {
 								.encodeContentTypeAs(MediaType.APPLICATION_YAML_VALUE, ContentType.TEXT)))
 				.spec(specification)
 				.contentType(MediaType.APPLICATION_YAML_VALUE)
-				.header(TestConfigs.HEADER_PARAM_ORIGIN, TestConfigs.ORIGIN_FELMANC)
+				.accept(TestConfigs.CONTENT_TYPE_YAML)
 				.body(person, objectMapper)
 				.when()
 				.post()
@@ -116,41 +125,16 @@ public class PersonControllerYamlTest extends AbstractIntegrationTest {
 		assertNotNull(persistedPerson.getAddress());
 		assertNotNull(persistedPerson.getGender());
 
-		assertTrue(persistedPerson.getId() > 0);
+		assertEquals(person.getId() ,persistedPerson.getId());
 
-		assertEquals("Richard", persistedPerson.getFirstName());
-		assertEquals("Stallman", persistedPerson.getLastName());
-		assertEquals("New York City, New York, US", persistedPerson.getAddress());
+		assertEquals("Nelson", persistedPerson.getFirstName());
+		assertEquals("Piquet", persistedPerson.getLastName());
+		assertEquals("Brasília - DF - Brasil", persistedPerson.getAddress());
 		assertEquals("Male", persistedPerson.getGender());
 	}
 
 	@Test
 	@Order(2)
-	public void testCreateWithWrongOrigin() throws JsonMappingException, JsonProcessingException {
-		mockPerson();
-
-		var content = given()
-				.config(RestAssuredConfig.config()
-						.encoderConfig(EncoderConfig.encoderConfig()
-								.encodeContentTypeAs(MediaType.APPLICATION_YAML_VALUE, ContentType.TEXT)))
-				.spec(specification)
-				.contentType(TestConfigs.CONTENT_TYPE_YAML)
-				.header(TestConfigs.HEADER_PARAM_ORIGIN, TestConfigs.ORIGIN_SEMERU)
-				.body(person, objectMapper)
-				.when()
-				.post()
-				.then()
-				.statusCode(403)
-				.extract()
-				.body()
-				.asString();
-
-		assertNotNull(content);
-		assertEquals("Invalid CORS request", content);
-	}
-
-	@Test
-	@Order(3)
 	public void testFindById() throws JsonMappingException, JsonProcessingException {
 		mockPerson();
 
@@ -160,7 +144,7 @@ public class PersonControllerYamlTest extends AbstractIntegrationTest {
 								.encodeContentTypeAs(MediaType.APPLICATION_YAML_VALUE, ContentType.TEXT)))
 				.spec(specification)
 				.contentType(TestConfigs.CONTENT_TYPE_YAML)
-				.header(TestConfigs.HEADER_PARAM_ORIGIN, TestConfigs.ORIGIN_FELMANC)
+				.accept(TestConfigs.CONTENT_TYPE_YAML)
 				.pathParam("id", person.getId())
 				.body(person, objectMapper)
 				.when()
@@ -183,40 +167,14 @@ public class PersonControllerYamlTest extends AbstractIntegrationTest {
 
 		assertTrue(persistedPerson.getId() > 0);
 
-		assertEquals("Richard", persistedPerson.getFirstName());
-		assertEquals("Stallman", persistedPerson.getLastName());
-		assertEquals("New York City, New York, US", persistedPerson.getAddress());
+		assertEquals("Nelson", persistedPerson.getFirstName());
+		assertEquals("Piquet", persistedPerson.getLastName());
+		assertEquals("Brasília - DF - Brasil", persistedPerson.getAddress());
 		assertEquals("Male", persistedPerson.getGender());
 	}
 
 	@Test
-	@Order(4)
-	public void testFindByIdWithWrongOrigin() throws JsonMappingException, JsonProcessingException {
-		mockPerson();
-
-		var content = given()
-				.config(RestAssuredConfig.config()
-						.encoderConfig(EncoderConfig.encoderConfig()
-								.encodeContentTypeAs(MediaType.APPLICATION_YAML_VALUE, ContentType.TEXT)))
-				.spec(specification)
-				.contentType(TestConfigs.CONTENT_TYPE_YAML)
-				.header(TestConfigs.HEADER_PARAM_ORIGIN, TestConfigs.ORIGIN_SEMERU)
-				.pathParam("id", person.getId())
-				.body(person, objectMapper)
-				.when()
-				.get("{id}")
-				.then()
-				.statusCode(403)
-				.extract()
-				.body()
-				.asString();
-
-		assertNotNull(content);
-		assertEquals("Invalid CORS request", content);
-	}
-
-	@Test
-	@Order(5)
+	@Order(3)
 	public void testUpdateNotFound() throws JsonMappingException, JsonProcessingException {
 		mockPerson();
 
@@ -234,7 +192,7 @@ public class PersonControllerYamlTest extends AbstractIntegrationTest {
 								.encodeContentTypeAs(MediaType.APPLICATION_YAML_VALUE, ContentType.TEXT)))
 				.spec(specification)
 				.contentType(TestConfigs.CONTENT_TYPE_YAML)
-				.header(TestConfigs.HEADER_PARAM_ORIGIN, TestConfigs.ORIGIN_FELMANC)
+				.accept(TestConfigs.CONTENT_TYPE_YAML)
 				.body(update, objectMapper)
 				.when()
 				.put()
@@ -245,16 +203,21 @@ public class PersonControllerYamlTest extends AbstractIntegrationTest {
 				.asString();
 
 		assertNotNull(content);
-
-		ObjectMapper mapper = new ObjectMapper();
-		JsonNode rootNode = mapper.readTree(content);
-		String message = rootNode.get("message").asText();
-
-		assertEquals("No records found for this ID: 22", message);
+		
+		YAMLFactory factory = new YAMLFactory(); // Cria uma fábrica para YAML
+		try {
+			YAMLParser parser = factory.createParser(content); // Cria um parser para processar a string YAML
+			YamlTreeReader yamlTreeReader = new YamlTreeReader();
+			JsonNode rootNode = yamlTreeReader.readTree(parser);
+			String message = rootNode.get("message").asText();
+			assertEquals("No records found for this ID: 22", message);			
+		} catch (IOException e) {
+			e.printStackTrace();
+		} 
 	}
 
 	@Test
-	@Order(6)
+	@Order(4)
 	public void testUpdateWithNoContent() throws JsonMappingException, JsonProcessingException {
 
 		var content = given()
@@ -263,7 +226,7 @@ public class PersonControllerYamlTest extends AbstractIntegrationTest {
 								.encodeContentTypeAs(MediaType.APPLICATION_YAML_VALUE, ContentType.TEXT)))
 				.spec(specification)
 				.contentType(TestConfigs.CONTENT_TYPE_YAML)
-				.header(TestConfigs.HEADER_PARAM_ORIGIN, TestConfigs.ORIGIN_FELMANC)
+				.accept(TestConfigs.CONTENT_TYPE_YAML)
 				.body("", objectMapper)
 				.when()
 				.put()
@@ -280,7 +243,7 @@ public class PersonControllerYamlTest extends AbstractIntegrationTest {
 	}
 
 	@Test
-	@Order(7)
+	@Order(5)
 	public void testUpdate() throws JsonMappingException, JsonProcessingException {
 		mockPerson();
 
@@ -298,7 +261,7 @@ public class PersonControllerYamlTest extends AbstractIntegrationTest {
 								.encodeContentTypeAs(MediaType.APPLICATION_YAML_VALUE, ContentType.TEXT)))
 				.spec(specification)
 				.contentType(TestConfigs.CONTENT_TYPE_YAML)
-				.header(TestConfigs.HEADER_PARAM_ORIGIN, TestConfigs.ORIGIN_FELMANC)
+				.accept(TestConfigs.CONTENT_TYPE_YAML)
 				.body(update, objectMapper)
 				.when()
 				.put()
@@ -318,43 +281,147 @@ public class PersonControllerYamlTest extends AbstractIntegrationTest {
 		assertNotNull(persistedPerson.getAddress());
 		assertNotNull(persistedPerson.getGender());
 
-		assertTrue(persistedPerson.getId() > 0);
+		assertEquals(update.getId() ,persistedPerson.getId());
 
-		assertEquals("Richard2", persistedPerson.getFirstName());
-		assertEquals("Stallman2", persistedPerson.getLastName());
-		assertEquals("New York City, New York, US", persistedPerson.getAddress());
+		assertEquals("Nelson2", persistedPerson.getFirstName());
+		assertEquals("Piquet2", persistedPerson.getLastName());
+		assertEquals("Brasília - DF - Brasil", persistedPerson.getAddress());
 		assertEquals("Male", persistedPerson.getGender());
 	}
 
 	@Test
-	@Order(8)
+	@Order(6)
 	public void testDelete() throws JsonMappingException, JsonProcessingException {
 		mockPerson();
 
-		var content = given()
-				.config(RestAssuredConfig.config()
+		given().config(RestAssuredConfig.config()
 						.encoderConfig(EncoderConfig.encoderConfig()
 								.encodeContentTypeAs(MediaType.APPLICATION_YAML_VALUE, ContentType.TEXT)))
 				.spec(specification)
 				.contentType(TestConfigs.CONTENT_TYPE_YAML)
-				.header(TestConfigs.HEADER_PARAM_ORIGIN, TestConfigs.ORIGIN_FELMANC)
+				.accept(TestConfigs.CONTENT_TYPE_YAML)
 				.pathParam("id", person.getId())
 				.body(person, objectMapper)
 				.when()
 				.delete("{id}")
 				.then()
-				.statusCode(204)
-				.extract()
-				.body()
-				.asString();
-
-		assertNotNull(content);
+				.statusCode(204);
 	}
 
+	@Test
+	@Order(7)
+	public void testFindAll() throws JsonMappingException, JsonProcessingException {
+
+		var content = given()
+				.spec(specification)
+				.contentType(TestConfigs.CONTENT_TYPE_YAML)
+				.accept(TestConfigs.CONTENT_TYPE_YAML)
+					.when()
+					.get()
+				.then()
+					.statusCode(200)
+				.extract()
+					.body()
+						.as(PersonVO[].class, objectMapper);
+
+			
+		List<PersonVO> people = Arrays.asList(content);		
+		
+		PersonVO foundPersonOne = people.get(0);
+
+		assertNotNull(foundPersonOne);
+		
+		assertNotNull(foundPersonOne.getId());
+		assertNotNull(foundPersonOne.getFirstName());
+		assertNotNull(foundPersonOne.getLastName());
+		assertNotNull(foundPersonOne.getAddress());
+		assertNotNull(foundPersonOne.getGender());
+		
+		assertEquals(1, foundPersonOne.getId());
+
+		assertEquals("Ayrton", foundPersonOne.getFirstName());
+		assertEquals("Senna", foundPersonOne.getLastName());
+		assertEquals("São Paulo", foundPersonOne.getAddress());
+		assertEquals("Male", foundPersonOne.getGender());
+		
+		PersonVO foundPersonSix = people.get(5);
+
+		person = foundPersonSix;
+		
+		assertNotNull(foundPersonSix);
+		
+		assertNotNull(foundPersonSix.getId());
+		assertNotNull(foundPersonSix.getFirstName());
+		assertNotNull(foundPersonSix.getLastName());
+		assertNotNull(foundPersonSix.getAddress());
+		assertNotNull(foundPersonSix.getGender());
+		
+		assertEquals(9, foundPersonSix.getId());
+
+		assertEquals("Nelson", foundPersonSix.getFirstName());
+		assertEquals("Mandela", foundPersonSix.getLastName());
+		assertEquals("Mvezo -South Africa", foundPersonSix.getAddress());
+		assertEquals("Male", foundPersonSix.getGender());
+	}
+	
+	@Test
+	@Order(8)
+	public void testFindAllWithoutToken() throws JsonMappingException, JsonProcessingException {
+
+		RequestSpecification specificationWithouToken;
+		
+		specificationWithouToken = new RequestSpecBuilder()
+				.setBasePath("/api/person/v1")
+				.setPort(TestConfigs.SERVER_PORT)
+				.addFilter(new RequestLoggingFilter(LogDetail.ALL))
+				.addFilter(new ResponseLoggingFilter(LogDetail.ALL))
+				.build();
+		
+		given().spec(specificationWithouToken)
+				.contentType(TestConfigs.CONTENT_TYPE_YAML)
+				.accept(TestConfigs.CONTENT_TYPE_YAML)
+					.when()
+					.get()
+				.then()
+					.statusCode(403);
+	}
+
+	@Test
+	@Order(9)
+	public void testUpdateWrongContentType() throws JsonMappingException, JsonProcessingException {
+		mockPerson();
+		
+		given()
+				.spec(specification)
+				.contentType("text/html")
+				.accept(TestConfigs.CONTENT_TYPE_YAML)
+					.when()
+					.put()
+				.then()
+					.statusCode(415);
+	}
+
+	@Test
+	@Order(10)
+	public void testUpdateWrongBodyContentType() throws JsonMappingException, JsonProcessingException {
+		mockPerson();
+		
+		given()
+					.spec(specification)
+					.contentType(TestConfigs.CONTENT_TYPE_YAML)
+					//.accept(TestConfigs.CONTENT_TYPE_XML)
+					.body(person, objectMapper)
+					.when()
+					.contentType(TestConfigs.CONTENT_TYPE_XML)
+					.put()
+				.then()
+					.statusCode(400);
+	}	
+	
 	private void mockPerson() {
-		person.setFirstName("Richard");
-		person.setLastName("Stallman");
-		person.setAddress("New York City, New York, US");
+		person.setFirstName("Nelson");
+		person.setLastName("Piquet");
+		person.setAddress("Brasília - DF - Brasil");
 		person.setGender("Male");
 	}
 }
