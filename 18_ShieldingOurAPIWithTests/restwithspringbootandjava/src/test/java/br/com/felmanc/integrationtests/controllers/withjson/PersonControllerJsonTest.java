@@ -139,8 +139,6 @@ public class PersonControllerJsonTest extends AbstractIntegrationTest{
 		
 		PersonVO persistedPerson = objectMapper.readValue(content, PersonVO.class);
 
-		person = persistedPerson;
-		
 		assertNotNull(persistedPerson);
 		
 		assertNotNull(persistedPerson.getId());
@@ -235,8 +233,6 @@ public class PersonControllerJsonTest extends AbstractIntegrationTest{
 		
 		PersonVO persistedPerson = objectMapper.readValue(content, PersonVO.class);
 
-		person = persistedPerson;
-		
 		assertNotNull(persistedPerson);
 		
 		assertNotNull(persistedPerson.getId());
@@ -286,8 +282,6 @@ public class PersonControllerJsonTest extends AbstractIntegrationTest{
 		
 		PersonVO foundPersonOne = people.get(0);
 
-		person = foundPersonOne;
-		
 		assertNotNull(foundPersonOne);
 		
 		assertNotNull(foundPersonOne.getId());
@@ -305,8 +299,6 @@ public class PersonControllerJsonTest extends AbstractIntegrationTest{
 		
 		PersonVO foundPersonSix = people.get(5);
 
-		person = foundPersonSix;
-		
 		assertNotNull(foundPersonSix);
 		
 		assertNotNull(foundPersonSix.getId());

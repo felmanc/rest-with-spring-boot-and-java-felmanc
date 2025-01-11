@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 
 import org.junit.jupiter.api.BeforeAll;
@@ -28,7 +29,7 @@ import br.com.felmanc.integrationtests.controllers.withyaml.mapper.YMLMapper;
 import br.com.felmanc.integrationtests.controllers.withyaml.mapper.YamlTreeReader;
 import br.com.felmanc.integrationtests.testcontainers.AbstractIntegrationTest;
 import br.com.felmanc.integrationtests.vo.AccountCredentialsVO;
-import br.com.felmanc.integrationtests.vo.PersonVO;
+import br.com.felmanc.integrationtests.vo.BookVO;
 import br.com.felmanc.integrationtests.vo.TokenVO;
 import io.restassured.builder.RequestSpecBuilder;
 import io.restassured.config.EncoderConfig;
@@ -41,25 +42,25 @@ import io.restassured.specification.RequestSpecification;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 @TestMethodOrder(OrderAnnotation.class)
-public class PersonControllerYamlTest extends AbstractIntegrationTest {
+public class BookControllerYamlTest extends AbstractIntegrationTest {
 
 	private static RequestSpecification specification;
 	private static YMLMapper objectMapper;
-
-	private static PersonVO person;
-
-	/* em setup() ainda não existe contexto Somente após o primeiro teste que o
-	 * Spring é iniciado e passa a existir um contexo
+	
+	private static BookVO book;
+	
+	/* em setup() ainda não existe contexto
+	 * Somente após o primeiro teste que o Spring é iniciado e passa a existir um contexo
 	 */
-
+	
 	@BeforeAll
 	public static void setup() {
 		objectMapper = new YMLMapper();
-		// objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES); // Tratado em YMLMapper
-
-		person = new PersonVO();
+		//objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES); // O YAML será gerado somente com os dados. FAIL_ON_UNKNOWN_PROPERTIES é necessário para desconsiderar a inexistencia do HATEOAS
+		
+		book = new BookVO();
 	}
-
+	
 	@Test
 	@Order(0)
 	public void authorization() throws JsonMappingException, JsonProcessingException {
@@ -76,7 +77,7 @@ public class PersonControllerYamlTest extends AbstractIntegrationTest {
 				.port(TestConfigs.SERVER_PORT)
 				.contentType(TestConfigs.CONTENT_TYPE_YAML)
 				.accept(TestConfigs.CONTENT_TYPE_YAML)
-					.body(user, objectMapper)
+					.body(user , objectMapper)
 					.when()
 					.post()
 				.then()
@@ -88,7 +89,7 @@ public class PersonControllerYamlTest extends AbstractIntegrationTest {
 
 		specification = new RequestSpecBuilder()
 				.addHeader(TestConfigs.HEADER_PARAM_AUTHORIZATION, "Bearer " + accessToken)
-				.setBasePath("/api/person/v1")
+				.setBasePath("/api/book/v1")
 				.setPort(TestConfigs.SERVER_PORT)
 				.addFilter(new RequestLoggingFilter(LogDetail.ALL))
 				.addFilter(new ResponseLoggingFilter(LogDetail.ALL))
@@ -98,49 +99,48 @@ public class PersonControllerYamlTest extends AbstractIntegrationTest {
 	@Test
 	@Order(1)
 	public void testCreate() throws JsonMappingException, JsonProcessingException {
-		mockPerson();
-
-		PersonVO persistedPerson = given()
+		mockBook();
+	
+		BookVO persistedBook = given()
 				.config(RestAssuredConfig
 						.config()
 						.encoderConfig(EncoderConfig.encoderConfig()
 								.encodeContentTypeAs(MediaType.APPLICATION_YAML_VALUE, ContentType.TEXT)))
 				.spec(specification)
-				.contentType(MediaType.APPLICATION_YAML_VALUE)
+				.contentType(TestConfigs.CONTENT_TYPE_YAML)
 				.accept(TestConfigs.CONTENT_TYPE_YAML)
-				.body(person, objectMapper)
-				.when()
-				.post()
+					.body(book, objectMapper)
+					.when()
+					.post()
 				.then()
-				.statusCode(200)
+					.statusCode(200)
 				.extract()
-				.body()
-				.as(PersonVO.class, objectMapper);
+					.body()
+					.as(BookVO.class, objectMapper);
 
-		person = persistedPerson;
+		book = persistedBook;
+		
+		assertNotNull(persistedBook);
+		
+		assertNotNull(persistedBook.getId());
+		assertNotNull(persistedBook.getTitle());
+		assertNotNull(persistedBook.getAuthor());
+		assertNotNull(persistedBook.getLaunchDate());
+		assertNotNull(persistedBook.getPrice());
+		
+		assertTrue(persistedBook.getId() > 0);
 
-		assertNotNull(persistedPerson);
-
-		assertNotNull(persistedPerson.getId());
-		assertNotNull(persistedPerson.getFirstName());
-		assertNotNull(persistedPerson.getLastName());
-		assertNotNull(persistedPerson.getAddress());
-		assertNotNull(persistedPerson.getGender());
-
-		assertEquals(person.getId() ,persistedPerson.getId());
-
-		assertEquals("Nelson", persistedPerson.getFirstName());
-		assertEquals("Piquet", persistedPerson.getLastName());
-		assertEquals("Brasília - DF - Brasil", persistedPerson.getAddress());
-		assertEquals("Male", persistedPerson.getGender());
+		assertEquals("Effective Java", persistedBook.getTitle());
+		assertEquals("Joshua Bloch", persistedBook.getAuthor());
+		assertEquals(65.9d, persistedBook.getPrice());
 	}
 
 	@Test
 	@Order(2)
 	public void testFindById() throws JsonMappingException, JsonProcessingException {
-		mockPerson();
-
-		var persistedPerson = given()
+		mockBook();
+		
+		var foundBook = given()
 				.config(RestAssuredConfig
 						.config()
 						.encoderConfig(EncoderConfig.encoderConfig()
@@ -148,62 +148,61 @@ public class PersonControllerYamlTest extends AbstractIntegrationTest {
 				.spec(specification)
 				.contentType(TestConfigs.CONTENT_TYPE_YAML)
 				.accept(TestConfigs.CONTENT_TYPE_YAML)
-				.pathParam("id", person.getId())
-				.body(person, objectMapper)
-				.when()
-				.get("{id}")
+					.pathParam("id", book.getId())
+					.body(book, objectMapper)
+					.when()
+					.get("{id}")
 				.then()
-				.statusCode(200)
+					.statusCode(200)
 				.extract()
-				.body()
-				.as(PersonVO.class, objectMapper);
+					.body()
+					.as(BookVO.class, objectMapper);
+		
+		assertNotNull(foundBook);
+		
+		assertNotNull(foundBook.getId());
+		assertNotNull(foundBook.getTitle());
+		assertNotNull(foundBook.getAuthor());
+		assertNotNull(foundBook.getLaunchDate());
+		assertNotNull(foundBook.getPrice());
+		
+		assertTrue(foundBook.getId() > 0);
 
-		assertNotNull(persistedPerson);
-
-		assertNotNull(persistedPerson.getId());
-		assertNotNull(persistedPerson.getFirstName());
-		assertNotNull(persistedPerson.getLastName());
-		assertNotNull(persistedPerson.getAddress());
-		assertNotNull(persistedPerson.getGender());
-
-		assertTrue(persistedPerson.getId() > 0);
-
-		assertEquals("Nelson", persistedPerson.getFirstName());
-		assertEquals("Piquet", persistedPerson.getLastName());
-		assertEquals("Brasília - DF - Brasil", persistedPerson.getAddress());
-		assertEquals("Male", persistedPerson.getGender());
+		assertEquals("Effective Java", foundBook.getTitle());
+		assertEquals("Joshua Bloch", foundBook.getAuthor());
+		assertEquals(65.9d, foundBook.getPrice());
 	}
 
 	@Test
 	@Order(3)
 	public void testUpdateNotFound() throws JsonMappingException, JsonProcessingException {
-		mockPerson();
-
-		PersonVO update = new PersonVO();
-
-		update.setId(22L);
-		update.setFirstName(person.getFirstName());
-		update.setLastName(person.getLastName());
-		update.setAddress(person.getAddress());
-		update.setGender(person.getGender());
-
+		mockBook();
+		
+		BookVO update = new BookVO();
+		
+		update.setId(30L);
+		update.setTitle(book.getTitle());
+		update.setAuthor(book.getAuthor());
+		update.setLaunchDate(book.getLaunchDate());
+		update.setPrice(book.getPrice());	
+		
 		var content = given()
 				.config(RestAssuredConfig
 						.config()
 						.encoderConfig(EncoderConfig.encoderConfig()
 								.encodeContentTypeAs(MediaType.APPLICATION_YAML_VALUE, ContentType.TEXT)))
-				.spec(specification)
+					.spec(specification)
 				.contentType(TestConfigs.CONTENT_TYPE_YAML)
 				.accept(TestConfigs.CONTENT_TYPE_YAML)
-				.body(update, objectMapper)
-				.when()
-				.put()
+					.body(update, objectMapper)
+					.when()
+					.put()
 				.then()
-				.statusCode(404)
-				.extract()
-				.body()
-				.asString();
-
+					.statusCode(404)
+					.extract()
+					.body()
+					.asString();
+		
 		assertNotNull(content);
 		
 		YAMLFactory factory = new YAMLFactory(); // Cria uma fábrica para YAML
@@ -212,16 +211,17 @@ public class PersonControllerYamlTest extends AbstractIntegrationTest {
 			YamlTreeReader yamlTreeReader = new YamlTreeReader();
 			JsonNode rootNode = yamlTreeReader.readTree(parser);
 			String message = rootNode.get("message").asText();
-			assertEquals("No records found for this ID: 22", message);			
+			assertEquals("No records found for this ID: 30", message);
 		} catch (IOException e) {
 			e.printStackTrace();
 		} 
 	}
-
+	
+	
 	@Test
 	@Order(4)
 	public void testUpdateWithNoContent() throws JsonMappingException, JsonProcessingException {
-
+		
 		var content = given()
 				.config(RestAssuredConfig
 						.config()
@@ -230,35 +230,35 @@ public class PersonControllerYamlTest extends AbstractIntegrationTest {
 				.spec(specification)
 				.contentType(TestConfigs.CONTENT_TYPE_YAML)
 				.accept(TestConfigs.CONTENT_TYPE_YAML)
-				.body("", objectMapper)
-				.when()
-				.put()
+					//.body("")
+					.when()
+					.put()
 				.then()
-				.statusCode(400)
+					.statusCode(400)
 				.extract()
-				.body()
-				.asString();
-
+					.body()
+						.asString();
+		
 		assertNotNull(content);
 		assertEquals(
-				"{\"type\":\"about:blank\",\"title\":\"Bad Request\",\"status\":400,\"detail\":\"Failed to read request\",\"instance\":\"/api/person/v1\"}",
+				"{\"type\":\"about:blank\",\"title\":\"Bad Request\",\"status\":400,\"detail\":\"Failed to read request\",\"instance\":\"/api/book/v1\"}",
 				content);
 	}
 
 	@Test
 	@Order(5)
 	public void testUpdate() throws JsonMappingException, JsonProcessingException {
-		mockPerson();
-
-		PersonVO update = new PersonVO();
-
-		update.setId(person.getId());
-		update.setFirstName(person.getFirstName() + "2");
-		update.setLastName(person.getLastName() + "2");
-		update.setAddress(person.getAddress());
-		update.setGender(person.getGender());
-
-		var persistedPerson = given()
+		mockBook();
+		
+		BookVO update = new BookVO();
+		
+		update.setId(book.getId());
+		update.setTitle(book.getTitle() +  "ABC");
+		update.setAuthor(book.getAuthor() +  "DEF");
+		update.setLaunchDate(book.getLaunchDate());
+		update.setPrice(book.getPrice());
+		
+		var updatedBook = given()
 				.config(RestAssuredConfig
 						.config()
 						.encoderConfig(EncoderConfig.encoderConfig()
@@ -266,48 +266,48 @@ public class PersonControllerYamlTest extends AbstractIntegrationTest {
 				.spec(specification)
 				.contentType(TestConfigs.CONTENT_TYPE_YAML)
 				.accept(TestConfigs.CONTENT_TYPE_YAML)
-				.body(update, objectMapper)
-				.when()
-				.put()
+					.body(update, objectMapper)
+					.when()
+					.put()
 				.then()
-				.statusCode(200)
+					.statusCode(200)
 				.extract()
-				.body()
-				.as(PersonVO.class, objectMapper);
+					.body()
+						.as(BookVO.class, objectMapper);
 
-		assertNotNull(persistedPerson);
+		assertNotNull(updatedBook);
+		
+		assertNotNull(updatedBook.getId());
+		assertNotNull(updatedBook.getTitle());
+		assertNotNull(updatedBook.getAuthor());
+		assertNotNull(updatedBook.getLaunchDate());
+		assertNotNull(updatedBook.getPrice());
+		
+		assertEquals(update.getId() ,updatedBook.getId());
 
-		assertNotNull(persistedPerson.getId());
-		assertNotNull(persistedPerson.getFirstName());
-		assertNotNull(persistedPerson.getLastName());
-		assertNotNull(persistedPerson.getAddress());
-		assertNotNull(persistedPerson.getGender());
-
-		assertEquals(update.getId() ,persistedPerson.getId());
-
-		assertEquals("Nelson2", persistedPerson.getFirstName());
-		assertEquals("Piquet2", persistedPerson.getLastName());
-		assertEquals("Brasília - DF - Brasil", persistedPerson.getAddress());
-		assertEquals("Male", persistedPerson.getGender());
+		assertEquals("Effective JavaABC", updatedBook.getTitle());
+		assertEquals("Joshua BlochDEF", updatedBook.getAuthor());
+		assertEquals(65.9d, updatedBook.getPrice());
 	}
 
 	@Test
 	@Order(6)
 	public void testDelete() throws JsonMappingException, JsonProcessingException {
-		mockPerson();
-
-		given().config(RestAssuredConfig
-						.config()
-						.encoderConfig(EncoderConfig.encoderConfig()
-								.encodeContentTypeAs(MediaType.APPLICATION_YAML_VALUE, ContentType.TEXT)))
-				.spec(specification)
+		mockBook();
+		
+		given()
+		.config(RestAssuredConfig
+				.config()
+				.encoderConfig(EncoderConfig.encoderConfig()
+						.encodeContentTypeAs(MediaType.APPLICATION_YAML_VALUE, ContentType.TEXT)))
+		.spec(specification)
 				.contentType(TestConfigs.CONTENT_TYPE_YAML)
 				.accept(TestConfigs.CONTENT_TYPE_YAML)
-				.pathParam("id", person.getId())
-				.body(person, objectMapper)
+				.pathParam("id", book.getId())
+				.body(book, objectMapper)
 				.when()
 				.delete("{id}")
-				.then()
+			.then()
 				.statusCode(204);
 	}
 
@@ -325,46 +325,45 @@ public class PersonControllerYamlTest extends AbstractIntegrationTest {
 					.statusCode(200)
 				.extract()
 					.body()
-						.as(PersonVO[].class, objectMapper);
+					.as(BookVO[].class, objectMapper);
+		
+		List<BookVO> books = Arrays.asList(content);		
+		
+		//('Ralph Johnson, Erich Gamma, John Vlissides e Richard Helm', '2017-11-29 15:15:13.636000', 45.00, 'Design Patterns'),
+		BookVO foundBookTwo = books.get(1);
 
-			
-		List<PersonVO> people = Arrays.asList(content);		
+		assertNotNull(foundBookTwo);
 		
-		PersonVO foundPersonOne = people.get(0);
+		assertNotNull(foundBookTwo.getId());
+		assertNotNull(foundBookTwo.getTitle());
+		assertNotNull(foundBookTwo.getAuthor());
+		assertNotNull(foundBookTwo.getLaunchDate());
+		assertNotNull(foundBookTwo.getPrice());
+		
+		assertEquals(2, foundBookTwo.getId());
 
-		assertNotNull(foundPersonOne);
+		assertEquals("Design Patterns", foundBookTwo.getTitle());
+		assertEquals("Ralph Johnson, Erich Gamma, John Vlissides e Richard Helm", foundBookTwo.getAuthor());
+		assertEquals(45.0d, foundBookTwo.getPrice());
 		
-		assertNotNull(foundPersonOne.getId());
-		assertNotNull(foundPersonOne.getFirstName());
-		assertNotNull(foundPersonOne.getLastName());
-		assertNotNull(foundPersonOne.getAddress());
-		assertNotNull(foundPersonOne.getGender());
-		
-		assertEquals(1, foundPersonOne.getId());
+		//('Eric Freeman, Elisabeth Freeman, Kathy Sierra, Bert Bates', '2017-11-07 15:09:01.674000', 110.00, 'Head First Design Patterns'),
+		BookVO foundBookSeven = books.get(6);
 
-		assertEquals("Ayrton", foundPersonOne.getFirstName());
-		assertEquals("Senna", foundPersonOne.getLastName());
-		assertEquals("São Paulo", foundPersonOne.getAddress());
-		assertEquals("Male", foundPersonOne.getGender());
+		assertNotNull(foundBookSeven);
 		
-		PersonVO foundPersonSix = people.get(5);
+		assertNotNull(foundBookSeven.getId());
+		assertNotNull(foundBookSeven.getTitle());
+		assertNotNull(foundBookSeven.getAuthor());
+		assertNotNull(foundBookSeven.getLaunchDate());
+		assertNotNull(foundBookSeven.getPrice());
+		
+		assertEquals(7, foundBookSeven.getId());
 
-		assertNotNull(foundPersonSix);
-		
-		assertNotNull(foundPersonSix.getId());
-		assertNotNull(foundPersonSix.getFirstName());
-		assertNotNull(foundPersonSix.getLastName());
-		assertNotNull(foundPersonSix.getAddress());
-		assertNotNull(foundPersonSix.getGender());
-		
-		assertEquals(9, foundPersonSix.getId());
-
-		assertEquals("Nelson", foundPersonSix.getFirstName());
-		assertEquals("Mandela", foundPersonSix.getLastName());
-		assertEquals("Mvezo -South Africa", foundPersonSix.getAddress());
-		assertEquals("Male", foundPersonSix.getGender());
+		assertEquals("Head First Design Patterns", foundBookSeven.getTitle());
+		assertEquals("Eric Freeman, Elisabeth Freeman, Kathy Sierra, Bert Bates", foundBookSeven.getAuthor());
+		assertEquals(110.0d, foundBookSeven.getPrice());
 	}
-	
+
 	@Test
 	@Order(8)
 	public void testFindAllWithoutToken() throws JsonMappingException, JsonProcessingException {
@@ -372,57 +371,58 @@ public class PersonControllerYamlTest extends AbstractIntegrationTest {
 		RequestSpecification specificationWithouToken;
 		
 		specificationWithouToken = new RequestSpecBuilder()
-				.setBasePath("/api/person/v1")
+				.setBasePath("/api/book/v1")
 				.setPort(TestConfigs.SERVER_PORT)
 				.addFilter(new RequestLoggingFilter(LogDetail.ALL))
 				.addFilter(new ResponseLoggingFilter(LogDetail.ALL))
 				.build();
 		
-		given().spec(specificationWithouToken)
+		given()
+			.spec(specificationWithouToken)
 				.contentType(TestConfigs.CONTENT_TYPE_YAML)
 				.accept(TestConfigs.CONTENT_TYPE_YAML)
-					.when()
-					.get()
-				.then()
-					.statusCode(403);
+				.when()
+				.get()
+			.then()
+				.statusCode(403);
 	}
 
 	@Test
 	@Order(9)
 	public void testUpdateWrongContentType() throws JsonMappingException, JsonProcessingException {
-		mockPerson();
+		mockBook();
 		
 		given()
-				.spec(specification)
-				.contentType("text/html")
-				.accept(TestConfigs.CONTENT_TYPE_YAML)
-					.when()
-					.put()
-				.then()
-					.statusCode(415);
+			.spec(specification)
+			.contentType("text/html")
+			.accept(TestConfigs.CONTENT_TYPE_YAML)
+				.when()
+				.put()
+			.then()
+				.statusCode(415);
 	}
 
 	@Test
 	@Order(10)
 	public void testUpdateWrongBodyContentType() throws JsonMappingException, JsonProcessingException {
-		mockPerson();
+		mockBook();
 		
 		given()
-					.spec(specification)
-					.contentType(TestConfigs.CONTENT_TYPE_YAML)
-					//.accept(TestConfigs.CONTENT_TYPE_XML)
-					.body(person, objectMapper)
-					.when()
-					.contentType(TestConfigs.CONTENT_TYPE_XML)
-					.put()
+			.spec(specification)
+			.contentType(TestConfigs.CONTENT_TYPE_YAML)
+			.body(book, objectMapper)
+			.when()
+			.contentType(TestConfigs.CONTENT_TYPE_XML)
+			.accept(TestConfigs.CONTENT_TYPE_XML)
+			.put()
 				.then()
 					.statusCode(400);
 	}	
 	
-	private void mockPerson() {
-		person.setFirstName("Nelson");
-		person.setLastName("Piquet");
-		person.setAddress("Brasília - DF - Brasil");
-		person.setGender("Male");
+	private void mockBook() {
+		book.setTitle("Effective Java");
+		book.setAuthor("Joshua Bloch");
+		book.setLaunchDate(new Date());
+		book.setPrice(65.9d);
 	}
 }

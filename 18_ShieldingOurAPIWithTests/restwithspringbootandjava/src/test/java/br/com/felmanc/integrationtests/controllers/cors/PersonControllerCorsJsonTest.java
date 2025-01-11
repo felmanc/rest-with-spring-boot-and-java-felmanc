@@ -156,8 +156,6 @@ public class PersonControllerCorsJsonTest extends AbstractIntegrationTest{
 		
 		PersonVO persistedPerson = objectMapper.readValue(content, PersonVO.class);
 
-		person = persistedPerson;
-		
 		assertNotNull(persistedPerson);
 		
 		assertNotNull(persistedPerson.getId());
@@ -278,8 +276,6 @@ public class PersonControllerCorsJsonTest extends AbstractIntegrationTest{
 		
 		PersonVO persistedPerson = objectMapper.readValue(content, PersonVO.class);
 
-		person = persistedPerson;
-		
 		assertNotNull(persistedPerson);
 		
 		assertNotNull(persistedPerson.getId());
