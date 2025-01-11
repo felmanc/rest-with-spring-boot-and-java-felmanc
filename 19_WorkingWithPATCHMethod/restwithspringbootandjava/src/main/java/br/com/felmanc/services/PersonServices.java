@@ -15,6 +15,7 @@ import br.com.felmanc.exceptions.ResourceNotFoundException;
 import br.com.felmanc.mapper.DozerMapper;
 import br.com.felmanc.model.Person;
 import br.com.felmanc.repositories.PersonRepository;
+import jakarta.transaction.Transactional;
 
 // @Service: Objeto que será injetado em Runtime na aplicação
 @Service
@@ -95,6 +96,25 @@ public class PersonServices {
 		
 		vo.add(linkTo(methodOn(PersonController.class).findById(vo.getKey())).withSelfRel());
 
+		return vo;
+	}
+
+	// @Transactional: necessário pois disablePerson efetua atualização no BD
+	@Transactional
+	public PersonVO disablePerson(Long id) {
+		logger.info("Disabling one person! id " + id);
+
+		repository.disablePerson(id);
+		
+		// Entidade: é o que o JPA/Hibernate sabe trabalhar
+		// Vai ao banco de dados e busca o objeto por id
+		var entity = repository.findById(id)
+				.orElseThrow(() -> new ResourceNotFoundException("No records found for this ID: " + id));
+		
+		var vo = DozerMapper.parseObject(entity, PersonVO.class);
+		
+		vo.add(linkTo(methodOn(PersonController.class).findById(id)).withSelfRel());
+		
 		return vo;
 	}
 

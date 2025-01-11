@@ -4,6 +4,7 @@ import static io.restassured.RestAssured.given;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.MethodOrderer.OrderAnnotation;
@@ -56,6 +57,8 @@ public class PersonControllerCorsJsonTest extends AbstractIntegrationTest{
 		AccountCredentialsVO user = new AccountCredentialsVO("leandro", "admin123");
 
 		var accessToken = given()
+				.filter(new RequestLoggingFilter(LogDetail.ALL))
+				.filter(new ResponseLoggingFilter(LogDetail.ALL))
 				.basePath("/auth/signin")
 				.port(TestConfigs.SERVER_PORT)
 				.contentType(TestConfigs.CONTENT_TYPE_JSON)
@@ -83,7 +86,8 @@ public class PersonControllerCorsJsonTest extends AbstractIntegrationTest{
 	public void testCreate() throws JsonMappingException, JsonProcessingException {
 		mockPerson();
 	
-		var content = given().spec(specification)
+		var content = given()
+				.spec(specification)
 				.contentType(TestConfigs.CONTENT_TYPE_JSON)
 					.header(TestConfigs.HEADER_PARAM_ORIGIN, TestConfigs.ORIGIN_FELMANC)
 					.body(person)
@@ -107,6 +111,7 @@ public class PersonControllerCorsJsonTest extends AbstractIntegrationTest{
 		assertNotNull(persistedPerson.getAddress());
 		assertNotNull(persistedPerson.getGender());
 		
+		assertTrue(persistedPerson.getEnabled());
 		assertTrue(persistedPerson.getId() > 0);
 
 		assertEquals("Richard", persistedPerson.getFirstName());
@@ -120,7 +125,8 @@ public class PersonControllerCorsJsonTest extends AbstractIntegrationTest{
 	public void testCreateWithWrongOrigin() throws JsonMappingException, JsonProcessingException {
 		mockPerson();
 		
-		var content = given().spec(specification)
+		var content = given()
+				.spec(specification)
 				.contentType(TestConfigs.CONTENT_TYPE_JSON)
 				.header(TestConfigs.HEADER_PARAM_ORIGIN, TestConfigs.ORIGIN_SEMERU)
 				.body(person)
@@ -141,11 +147,11 @@ public class PersonControllerCorsJsonTest extends AbstractIntegrationTest{
 	public void testFindById() throws JsonMappingException, JsonProcessingException {
 		mockPerson();
 		
-		var content = given().spec(specification)
+		var content = given()
+				.spec(specification)
 				.contentType(TestConfigs.CONTENT_TYPE_JSON)
 					.pathParam("id", person.getId())
 					.header(TestConfigs.HEADER_PARAM_ORIGIN, TestConfigs.ORIGIN_FELMANC)
-					.body(person)
 					.when()
 					.get("{id}")
 				.then()
@@ -164,6 +170,7 @@ public class PersonControllerCorsJsonTest extends AbstractIntegrationTest{
 		assertNotNull(persistedPerson.getAddress());
 		assertNotNull(persistedPerson.getGender());
 		
+		assertTrue(persistedPerson.getEnabled());
 		assertTrue(persistedPerson.getId() > 0);
 
 		assertEquals("Richard", persistedPerson.getFirstName());
@@ -177,11 +184,11 @@ public class PersonControllerCorsJsonTest extends AbstractIntegrationTest{
 	public void testFindByIdWithWrongOrigin() throws JsonMappingException, JsonProcessingException {
 		mockPerson();
 		
-		var content = given().spec(specification)
+		var content = given()
+				.spec(specification)
 				.contentType(TestConfigs.CONTENT_TYPE_JSON)
 					.pathParam("id", person.getId())
 					.header(TestConfigs.HEADER_PARAM_ORIGIN, TestConfigs.ORIGIN_SEMERU)
-					.body(person)
 					.when()
 					.get("{id}")
 				.then()
@@ -208,7 +215,8 @@ public class PersonControllerCorsJsonTest extends AbstractIntegrationTest{
 		update.setAddress(person.getAddress());
 		update.setGender(person.getGender());	
 		
-		var content = given().spec(specification)
+		var content = given()
+				.spec(specification)
 					.contentType(TestConfigs.CONTENT_TYPE_JSON)
 					.header(TestConfigs.HEADER_PARAM_ORIGIN, TestConfigs.ORIGIN_FELMANC)
 					.body(update)
@@ -233,7 +241,8 @@ public class PersonControllerCorsJsonTest extends AbstractIntegrationTest{
 	@Order(6)
 	public void testUpdateWithNoContent() throws JsonMappingException, JsonProcessingException {
 		
-		var content = given().spec(specification)
+		var content = given()
+				.spec(specification)
 				.contentType(TestConfigs.CONTENT_TYPE_JSON)
 					.header(TestConfigs.HEADER_PARAM_ORIGIN, TestConfigs.ORIGIN_FELMANC)
 					.body("")
@@ -262,7 +271,8 @@ public class PersonControllerCorsJsonTest extends AbstractIntegrationTest{
 		update.setAddress(person.getAddress());
 		update.setGender(person.getGender());
 		
-		var content = given().spec(specification)
+		var content = given()
+				.spec(specification)
 				.contentType(TestConfigs.CONTENT_TYPE_JSON)
 					.header(TestConfigs.HEADER_PARAM_ORIGIN, TestConfigs.ORIGIN_FELMANC)
 					.body(update)
@@ -284,6 +294,7 @@ public class PersonControllerCorsJsonTest extends AbstractIntegrationTest{
 		assertNotNull(persistedPerson.getAddress());
 		assertNotNull(persistedPerson.getGender());
 		
+		assertTrue(persistedPerson.getEnabled());
 		assertTrue(persistedPerson.getId() > 0);
 
 		assertEquals("Richard2", persistedPerson.getFirstName());
@@ -298,11 +309,11 @@ public class PersonControllerCorsJsonTest extends AbstractIntegrationTest{
 	public void testDelete() throws JsonMappingException, JsonProcessingException {
 		mockPerson();
 		
-		var content = given().spec(specification)
+		var content = given()
+				.spec(specification)
 				.contentType(TestConfigs.CONTENT_TYPE_JSON)
 					.pathParam("id", person.getId())
 					.header(TestConfigs.HEADER_PARAM_ORIGIN, TestConfigs.ORIGIN_FELMANC)
-					.body(person)
 					.when()
 					.delete("{id}")
 				.then()
@@ -320,5 +331,6 @@ public class PersonControllerCorsJsonTest extends AbstractIntegrationTest{
 		person.setLastName("Stallman");
 		person.setAddress("New York City, New York, US");
 		person.setGender("Male");
+		person.setEnabled(true);
 	}
 }

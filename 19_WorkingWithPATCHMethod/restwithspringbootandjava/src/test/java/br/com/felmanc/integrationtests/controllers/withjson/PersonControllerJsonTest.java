@@ -1,9 +1,11 @@
 package br.com.felmanc.integrationtests.controllers.withjson;
 
 import static io.restassured.RestAssured.given;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import java.util.List;
 
@@ -75,7 +77,6 @@ public class PersonControllerJsonTest extends AbstractIntegrationTest{
 						.getAccessToken();
 
 		specification = new RequestSpecBuilder()
-
 				.addHeader(TestConfigs.HEADER_PARAM_AUTHORIZATION, "Bearer " + accessToken)
 				.setBasePath("/api/person/v1")
 				.setPort(TestConfigs.SERVER_PORT)
@@ -89,7 +90,8 @@ public class PersonControllerJsonTest extends AbstractIntegrationTest{
 	public void testCreate() throws JsonMappingException, JsonProcessingException {
 		mockPerson();
 	
-		var content = given().spec(specification)
+		var content = given()
+				.spec(specification)
 				.contentType(TestConfigs.CONTENT_TYPE_JSON)
 					.body(person)
 					.when()
@@ -111,7 +113,8 @@ public class PersonControllerJsonTest extends AbstractIntegrationTest{
 		assertNotNull(persistedPerson.getLastName());
 		assertNotNull(persistedPerson.getAddress());
 		assertNotNull(persistedPerson.getGender());
-		
+
+		assertTrue(persistedPerson.getEnabled());
 		assertTrue(persistedPerson.getId() > 0);
 
 		assertEquals("Nelson", persistedPerson.getFirstName());
@@ -122,13 +125,48 @@ public class PersonControllerJsonTest extends AbstractIntegrationTest{
 
 	@Test
 	@Order(2)
+	public void testDisablePersonById() throws JsonMappingException, JsonProcessingException {
+		
+		var content = given()
+				.spec(specification)
+				.contentType(TestConfigs.CONTENT_TYPE_JSON)
+				.pathParam("id", person.getId())
+				.when()
+				.patch("{id}")
+				.then()
+				.statusCode(200)
+				.extract()
+				.body()
+				.asString();
+		
+		PersonVO persistedPerson = objectMapper.readValue(content, PersonVO.class);
+		
+		assertNotNull(persistedPerson);
+		
+		assertNotNull(persistedPerson.getId());
+		assertNotNull(persistedPerson.getFirstName());
+		assertNotNull(persistedPerson.getLastName());
+		assertNotNull(persistedPerson.getAddress());
+		assertNotNull(persistedPerson.getGender());
+
+		assertFalse(persistedPerson.getEnabled());
+		assertTrue(persistedPerson.getId() > 0);
+		
+		assertEquals("Nelson", persistedPerson.getFirstName());
+		assertEquals("Piquet", persistedPerson.getLastName());
+		assertEquals("Brasília - DF - Brasil", persistedPerson.getAddress());
+		assertEquals("Male", persistedPerson.getGender());
+	}
+	
+	@Test
+	@Order(3)
 	public void testFindById() throws JsonMappingException, JsonProcessingException {
 		mockPerson();
 		
-		var content = given().spec(specification)
+		var content = given()
+				.spec(specification)
 				.contentType(TestConfigs.CONTENT_TYPE_JSON)
 					.pathParam("id", person.getId())
-					.body(person)
 					.when()
 					.get("{id}")
 				.then()
@@ -146,9 +184,10 @@ public class PersonControllerJsonTest extends AbstractIntegrationTest{
 		assertNotNull(persistedPerson.getLastName());
 		assertNotNull(persistedPerson.getAddress());
 		assertNotNull(persistedPerson.getGender());
-		
-		assertTrue(persistedPerson.getId() > 0);
 
+		assertFalse(persistedPerson.getEnabled());
+		assertTrue(persistedPerson.getId() > 0);
+		
 		assertEquals("Nelson", persistedPerson.getFirstName());
 		assertEquals("Piquet", persistedPerson.getLastName());
 		assertEquals("Brasília - DF - Brasil", persistedPerson.getAddress());
@@ -156,7 +195,7 @@ public class PersonControllerJsonTest extends AbstractIntegrationTest{
 	}
 
 	@Test
-	@Order(3)
+	@Order(4)
 	public void testUpdateNotFound() throws JsonMappingException, JsonProcessingException {
 		mockPerson();
 		
@@ -168,7 +207,8 @@ public class PersonControllerJsonTest extends AbstractIntegrationTest{
 		update.setAddress(person.getAddress());
 		update.setGender(person.getGender());	
 		
-		var content = given().spec(specification)
+		var content = given()
+				.spec(specification)
 					.contentType(TestConfigs.CONTENT_TYPE_JSON)
 					.body(update)
 					.when()
@@ -189,10 +229,11 @@ public class PersonControllerJsonTest extends AbstractIntegrationTest{
 	
 	
 	@Test
-	@Order(4)
+	@Order(5)
 	public void testUpdateWithNoContent() throws JsonMappingException, JsonProcessingException {
 		
-		var content = given().spec(specification)
+		var content = given()
+				.spec(specification)
 				.contentType(TestConfigs.CONTENT_TYPE_JSON)
 					.body("")
 					.when()
@@ -208,7 +249,7 @@ public class PersonControllerJsonTest extends AbstractIntegrationTest{
 	}
 
 	@Test
-	@Order(5)
+	@Order(6)
 	public void testUpdate() throws JsonMappingException, JsonProcessingException {
 		mockPerson();
 		
@@ -220,7 +261,8 @@ public class PersonControllerJsonTest extends AbstractIntegrationTest{
 		update.setAddress(person.getAddress());
 		update.setGender(person.getGender());
 		
-		var content = given().spec(specification)
+		var content = given()
+				.spec(specification)
 				.contentType(TestConfigs.CONTENT_TYPE_JSON)
 					.body(update)
 					.when()
@@ -240,7 +282,9 @@ public class PersonControllerJsonTest extends AbstractIntegrationTest{
 		assertNotNull(persistedPerson.getLastName());
 		assertNotNull(persistedPerson.getAddress());
 		assertNotNull(persistedPerson.getGender());
-		
+
+		assertFalse(persistedPerson.getEnabled());
+
 		assertEquals(update.getId() ,persistedPerson.getId());
 
 		assertEquals("Nelson2", persistedPerson.getFirstName());
@@ -250,14 +294,14 @@ public class PersonControllerJsonTest extends AbstractIntegrationTest{
 	}
 
 	@Test
-	@Order(6)
+	@Order(7)
 	public void testDelete() throws JsonMappingException, JsonProcessingException {
 		mockPerson();
 		
-		given().spec(specification)
+		given()
+				.spec(specification)
 				.contentType(TestConfigs.CONTENT_TYPE_JSON)
 					.pathParam("id", person.getId())
-					.body(person)
 					.when()
 					.delete("{id}")
 				.then()
@@ -265,10 +309,11 @@ public class PersonControllerJsonTest extends AbstractIntegrationTest{
 	}
 
 	@Test
-	@Order(7)
+	@Order(8)
 	public void testFindAll() throws JsonMappingException, JsonProcessingException {
 
-		var content = given().spec(specification)
+		var content = given()
+				.spec(specification)
 				.contentType(TestConfigs.CONTENT_TYPE_JSON)
 					.when()
 					.get()
@@ -289,7 +334,9 @@ public class PersonControllerJsonTest extends AbstractIntegrationTest{
 		assertNotNull(foundPersonOne.getLastName());
 		assertNotNull(foundPersonOne.getAddress());
 		assertNotNull(foundPersonOne.getGender());
-		
+
+		assertTrue(foundPersonOne.getEnabled());
+
 		assertEquals(1, foundPersonOne.getId());
 
 		assertEquals("Ayrton", foundPersonOne.getFirstName());
@@ -306,6 +353,8 @@ public class PersonControllerJsonTest extends AbstractIntegrationTest{
 		assertNotNull(foundPersonSix.getLastName());
 		assertNotNull(foundPersonSix.getAddress());
 		assertNotNull(foundPersonSix.getGender());
+
+		assertTrue(foundPersonOne.getEnabled());
 		
 		assertEquals(9, foundPersonSix.getId());
 
@@ -316,7 +365,7 @@ public class PersonControllerJsonTest extends AbstractIntegrationTest{
 	}
 
 	@Test
-	@Order(8)
+	@Order(9)
 	public void testFindAllWithoutToken() throws JsonMappingException, JsonProcessingException {
 
 		RequestSpecification specificationWithouToken;
@@ -337,11 +386,11 @@ public class PersonControllerJsonTest extends AbstractIntegrationTest{
 	}
 
 	@Test
-	@Order(9)
+	@Order(10)
 	public void testUpdateWrongContentType() throws JsonMappingException, JsonProcessingException {
-		mockPerson();
 		
-		given().spec(specification)
+		given()
+				.spec(specification)
 				.contentType("text/html")
 					.when()
 					.put()
@@ -350,11 +399,12 @@ public class PersonControllerJsonTest extends AbstractIntegrationTest{
 	}
 
 	@Test
-	@Order(10)
+	@Order(11)
 	public void testUpdateWrongBodyContentType() throws JsonMappingException, JsonProcessingException {
 		mockPerson();
 		
-		given().spec(specification)
+		given()
+				.spec(specification)
 					.contentType(TestConfigs.CONTENT_TYPE_JSON)
 					.body(person)
 					.when()
@@ -369,5 +419,6 @@ public class PersonControllerJsonTest extends AbstractIntegrationTest{
 		person.setLastName("Piquet");
 		person.setAddress("Brasília - DF - Brasil");
 		person.setGender("Male");
+		person.setEnabled(true);		
 	}
 }
