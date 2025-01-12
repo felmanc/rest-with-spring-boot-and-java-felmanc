@@ -222,51 +222,6 @@ public class PersonControllerYamlTest extends AbstractIntegrationTest {
 	
 	@Test
 	@Order(4)
-	public void testUpdateNotFound() throws JsonMappingException, JsonProcessingException {
-		mockPerson();
-
-		PersonVO update = new PersonVO();
-
-		update.setId(22L);
-		update.setFirstName(person.getFirstName());
-		update.setLastName(person.getLastName());
-		update.setAddress(person.getAddress());
-		update.setGender(person.getGender());
-
-		var content = given()
-				.config(RestAssuredConfig
-						.config()
-						.encoderConfig(EncoderConfig.encoderConfig()
-								.encodeContentTypeAs(MediaType.APPLICATION_YAML_VALUE,
-										ContentType.TEXT)))
-				.spec(specification)
-				.contentType(TestConfigs.CONTENT_TYPE_YAML)
-				.accept(TestConfigs.CONTENT_TYPE_YAML)
-				.body(update, objectMapper)
-				.when()
-				.put()
-				.then()
-				.statusCode(404)
-				.extract()
-				.body()
-				.asString();
-
-		assertNotNull(content);
-		
-		YAMLFactory factory = new YAMLFactory(); // Cria uma fábrica para YAML
-		try {
-			YAMLParser parser = factory.createParser(content); // Cria um parser para processar a string YAML
-			YamlTreeReader yamlTreeReader = new YamlTreeReader();
-			JsonNode rootNode = yamlTreeReader.readTree(parser);
-			String message = rootNode.get("message").asText();
-			assertEquals("No records found for this ID: 22", message);			
-		} catch (IOException e) {
-			e.printStackTrace();
-		} 
-	}
-
-	@Test
-	@Order(5)
 	public void testUpdateWithNoContent() throws JsonMappingException, JsonProcessingException {
 
 		var content = given()
@@ -294,7 +249,7 @@ public class PersonControllerYamlTest extends AbstractIntegrationTest {
 	}
 
 	@Test
-	@Order(6)
+	@Order(5)
 	public void testUpdate() throws JsonMappingException, JsonProcessingException {
 		mockPerson();
 
@@ -342,7 +297,7 @@ public class PersonControllerYamlTest extends AbstractIntegrationTest {
 	}
 
 	@Test
-	@Order(7)
+	@Order(6)
 	public void testDelete() throws JsonMappingException, JsonProcessingException {
 
 		given().config(RestAssuredConfig
@@ -358,6 +313,51 @@ public class PersonControllerYamlTest extends AbstractIntegrationTest {
 				.delete("{id}")
 				.then()
 				.statusCode(204);
+	}
+
+	@Test
+	@Order(7)
+	public void testUpdateNotFound() throws JsonMappingException, JsonProcessingException {
+		mockPerson();
+
+		PersonVO update = new PersonVO();
+
+		update.setId(person.getId());
+		update.setFirstName(person.getFirstName());
+		update.setLastName(person.getLastName());
+		update.setAddress(person.getAddress());
+		update.setGender(person.getGender());
+
+		var content = given()
+				.config(RestAssuredConfig
+						.config()
+						.encoderConfig(EncoderConfig.encoderConfig()
+								.encodeContentTypeAs(MediaType.APPLICATION_YAML_VALUE,
+										ContentType.TEXT)))
+				.spec(specification)
+				.contentType(TestConfigs.CONTENT_TYPE_YAML)
+				.accept(TestConfigs.CONTENT_TYPE_YAML)
+				.body(update, objectMapper)
+				.when()
+				.put()
+				.then()
+				.statusCode(404)
+				.extract()
+				.body()
+				.asString();
+
+		assertNotNull(content);
+		
+		YAMLFactory factory = new YAMLFactory(); // Cria uma fábrica para YAML
+		try {
+			YAMLParser parser = factory.createParser(content); // Cria um parser para processar a string YAML
+			YamlTreeReader yamlTreeReader = new YamlTreeReader();
+			JsonNode rootNode = yamlTreeReader.readTree(parser);
+			String message = rootNode.get("message").asText();
+			assertEquals("No records found for this ID: " + person.getId(), message);			
+		} catch (IOException e) {
+			e.printStackTrace();
+		} 
 	}
 
 	@Test

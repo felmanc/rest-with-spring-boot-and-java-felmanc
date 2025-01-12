@@ -199,40 +199,6 @@ public class PersonControllerXMLTest extends AbstractIntegrationTest {
 	
 	@Test
 	@Order(4)
-	public void testUpdateNotFound() throws JsonMappingException, JsonProcessingException {
-		mockPerson();
-		
-		PersonVO update = new PersonVO();
-		
-		update.setId(22L);
-		update.setFirstName(person.getFirstName());
-		update.setLastName(person.getLastName());
-		update.setAddress(person.getAddress());
-		update.setGender(person.getGender());	
-		
-		var content = given()
-				.spec(specification)
-				.contentType(TestConfigs.CONTENT_TYPE_XML)
-				.accept(TestConfigs.CONTENT_TYPE_XML)
-					.body(update)
-					.when()
-					.put()
-				.then()
-					.statusCode(404)
-					.extract()
-					.body()
-					.asString();
-		
-		assertNotNull(content);
-		
-		JsonNode rootNode = objectMapper.readTree(content);
-		String message = rootNode.get("message").asText();
-		
-		assertEquals("No records found for this ID: 22", message);
-	}	
-	
-	@Test
-	@Order(5)
 	public void testUpdateWithNoContent() throws JsonMappingException, JsonProcessingException {
 		
 		var content = given()
@@ -255,7 +221,7 @@ public class PersonControllerXMLTest extends AbstractIntegrationTest {
 	}
 
 	@Test
-	@Order(6)
+	@Order(5)
 	public void testUpdate() throws JsonMappingException, JsonProcessingException {
 		mockPerson();
 		
@@ -301,7 +267,7 @@ public class PersonControllerXMLTest extends AbstractIntegrationTest {
 	}
 
 	@Test
-	@Order(7)
+	@Order(6)
 	public void testDelete() throws JsonMappingException, JsonProcessingException {
 		mockPerson();
 		
@@ -316,6 +282,40 @@ public class PersonControllerXMLTest extends AbstractIntegrationTest {
 					.statusCode(204);
 	}
 
+	@Test
+	@Order(7)
+	public void testUpdateNotFound() throws JsonMappingException, JsonProcessingException {
+		mockPerson();
+		
+		PersonVO update = new PersonVO();
+		
+		update.setId(person.getId());
+		update.setFirstName(person.getFirstName());
+		update.setLastName(person.getLastName());
+		update.setAddress(person.getAddress());
+		update.setGender(person.getGender());	
+		
+		var content = given()
+				.spec(specification)
+				.contentType(TestConfigs.CONTENT_TYPE_XML)
+				.accept(TestConfigs.CONTENT_TYPE_XML)
+					.body(update)
+					.when()
+					.put()
+				.then()
+					.statusCode(404)
+					.extract()
+					.body()
+					.asString();
+		
+		assertNotNull(content);
+		
+		JsonNode rootNode = objectMapper.readTree(content);
+		String message = rootNode.get("message").asText();
+		
+		assertEquals("No records found for this ID: " + person.getId(), message);
+	}	
+	
 	@Test
 	@Order(8)
 	public void testFindAll() throws JsonMappingException, JsonProcessingException {

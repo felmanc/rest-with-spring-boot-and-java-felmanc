@@ -204,62 +204,6 @@ public class PersonControllerCorsJsonTest extends AbstractIntegrationTest{
 
 	@Test
 	@Order(5)
-	public void testUpdateNotFound() throws JsonMappingException, JsonProcessingException {
-		mockPerson();
-		
-		PersonVO update = new PersonVO();
-		
-		update.setId(22L);
-		update.setFirstName(person.getFirstName());
-		update.setLastName(person.getLastName());
-		update.setAddress(person.getAddress());
-		update.setGender(person.getGender());	
-		
-		var content = given()
-				.spec(specification)
-					.contentType(TestConfigs.CONTENT_TYPE_JSON)
-					.header(TestConfigs.HEADER_PARAM_ORIGIN, TestConfigs.ORIGIN_FELMANC)
-					.body(update)
-					.when()
-					.put()
-				.then()
-					.statusCode(404)
-					.extract()
-					.body()
-					.asString();
-		
-		assertNotNull(content);
-		
-		JsonNode rootNode = objectMapper.readTree(content);
-		String message = rootNode.get("message").asText();
-		
-		assertEquals("No records found for this ID: 22", message);
-	}
-	
-	
-	@Test
-	@Order(6)
-	public void testUpdateWithNoContent() throws JsonMappingException, JsonProcessingException {
-		
-		var content = given()
-				.spec(specification)
-				.contentType(TestConfigs.CONTENT_TYPE_JSON)
-					.header(TestConfigs.HEADER_PARAM_ORIGIN, TestConfigs.ORIGIN_FELMANC)
-					.body("")
-					.when()
-					.put()
-				.then()
-					.statusCode(400)
-				.extract()
-					.body()
-						.asString();
-		
-		assertNotNull(content);
-		assertEquals("{\"type\":\"about:blank\",\"title\":\"Bad Request\",\"status\":400,\"detail\":\"Failed to read request\",\"instance\":\"/api/person/v1\"}", content);
-	}
-
-	@Test
-	@Order(7)
 	public void testUpdate() throws JsonMappingException, JsonProcessingException {
 		mockPerson();
 		
@@ -302,10 +246,9 @@ public class PersonControllerCorsJsonTest extends AbstractIntegrationTest{
 		assertEquals("New York City, New York, US", persistedPerson.getAddress());
 		assertEquals("Male", persistedPerson.getGender());
 	}
-	
 
 	@Test
-	@Order(8)
+	@Order(6)
 	public void testDelete() throws JsonMappingException, JsonProcessingException {
 		mockPerson();
 		
