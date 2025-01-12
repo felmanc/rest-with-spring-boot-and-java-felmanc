@@ -6,6 +6,8 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 import java.util.List;
 import java.util.logging.Logger;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import br.com.felmanc.controllers.PersonController;
@@ -31,18 +33,21 @@ public class PersonServices {
 		this.repository = repository;
 	}
 
-	public List<PersonVO> findAll() {
+	public Page<PersonVO> findAll(Pageable pageable) {
 		logger.info("Find all people!");
 
-		// Obtém a lista de PersonVO
-		var persons = DozerMapper.parseListObjects(repository.findAll(), PersonVO.class);
+		// Retorna uma page de Person
+		var personPage = repository.findAll(pageable);
 		
-		// Adiciona um self link a cada PersonVO
-		persons
-			.stream()
-			.forEach(p -> p.add(linkTo(methodOn(PersonController.class).findById(p.getKey())).withSelfRel()));
+		// Converte cada Person para PersonVO
+		var personVosPage = personPage.map(p -> DozerMapper.parseObject(p, PersonVO.class));
 		
-		return persons;
+		// Adiciona o self link HATEOAS a cada PersonVO
+		personVosPage.map(
+				p -> p.add(
+						linkTo(methodOn(PersonController.class).findById(p.getKey())).withSelfRel()));
+		
+		return personVosPage;
 	}
 
 	public PersonVO findById(Long id) {
