@@ -14,6 +14,7 @@ import br.com.felmanc.model.Person;
 public interface PersonRepository extends JpaRepository<Person, Long> {
 	
 	// @Modifying: Para garantir os princípios ACID (Atomicidade, conscistência, isolação e durabilidade)
+	//		Necessário por efetuar alterações no Banco de Dados e não é o Spring Data que está manipulando
 	@Modifying
 	@Query("UPDATE Person p SET p.enabled = false WHERE p.id =:id")
 	void disablePerson(@Param("id") Long id);
