@@ -72,9 +72,9 @@ public class PersonController {
 		}
 		)
 	public ResponseEntity<PagedModel<EntityModel<PersonVO>>> findAll(
-			@RequestParam (value = "page", defaultValue="0") Integer page,
-			@RequestParam (value = "size", defaultValue="12") Integer size,
-			@RequestParam (value = "direction", defaultValue="asc") String direction
+			@RequestParam (/*value = "page",*/ defaultValue="0") Integer page,
+			@RequestParam (/*value = "size",*/ defaultValue="12") Integer size,
+			@RequestParam (/*value = "direction",*/ defaultValue="asc") String direction
 	) {
 		var sortDirection = "desc".equalsIgnoreCase(direction) ? Direction.DESC : Direction.ASC;
 		
