@@ -3,9 +3,13 @@ package br.com.felmanc.services;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
-import java.util.List;
 import java.util.logging.Logger;
 
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PagedResourcesAssembler;
+import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.Link;
+import org.springframework.hateoas.PagedModel;
 import org.springframework.stereotype.Service;
 
 import br.com.felmanc.controllers.BookController;
@@ -20,25 +24,36 @@ import br.com.felmanc.repositories.BookRepository;
 @Service
 public class BookServices {
 	private Logger logger = Logger.getLogger(BookServices.class.getName());
-	
+
+	//@Autowired
 	BookRepository repository;
 
-	public BookServices(BookRepository repository) {
+	//@Autowired
+	PagedResourcesAssembler<BookVO> assembler;
+	
+	public BookServices(BookRepository repository, PagedResourcesAssembler<BookVO> assembler) {
 		this.repository = repository;
-	}
-
-	public List<BookVO> findAll() {
-		logger.info("Find all books!");
-		
-		var books = DozerMapper.parseListObjects(repository.findAll(), BookVO.class);
-
-		books
-			.stream()
-			.forEach(p -> p.add(linkTo(methodOn(BookController.class).findById(p.getKey())).withSelfRel()));
-
-		return books;
+		this.assembler = assembler;
 	}
 	
+	public PagedModel<EntityModel<BookVO>> findAll(Pageable pageable) {
+		logger.info("Find all books!");
+		
+		var booksPage = repository.findAll(pageable);
+		
+		var bookVOsPage = booksPage.map(p -> DozerMapper.parseObject(p, BookVO.class));
+		
+		bookVOsPage.map(
+				p -> p.add(linkTo(methodOn(BookController.class)
+						.findById(p.getKey())).withSelfRel()));
+		
+		Link link = linkTo(methodOn(BookController.class)
+				.findAll(pageable.getPageNumber(),
+						pageable.getPageSize(),
+						"asc")).withSelfRel();
+		return assembler.toModel(bookVOsPage, link);
+	}
+
 	public BookVO findById(Long id) {
 		logger.info("Find one book! id " + id);
 		

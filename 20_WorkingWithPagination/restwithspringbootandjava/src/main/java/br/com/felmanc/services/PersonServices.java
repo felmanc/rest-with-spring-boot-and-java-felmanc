@@ -53,6 +53,7 @@ public class PersonServices {
 				p -> p.add(
 						linkTo(methodOn(PersonController.class).findById(p.getKey())).withSelfRel()));
 		
+		// Adiciona o sef link HATEOAS a pagina
 		Link link = linkTo(methodOn(PersonController.class)
 				.findAll(pageable.getPageNumber(),
 						pageable.getPageSize(),
