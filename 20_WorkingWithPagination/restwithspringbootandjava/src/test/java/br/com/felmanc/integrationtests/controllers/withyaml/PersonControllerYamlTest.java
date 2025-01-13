@@ -7,8 +7,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.List;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.MethodOrderer.OrderAnnotation;
@@ -31,6 +29,7 @@ import br.com.felmanc.integrationtests.testcontainers.AbstractIntegrationTest;
 import br.com.felmanc.integrationtests.vo.AccountCredentialsVO;
 import br.com.felmanc.integrationtests.vo.PersonVO;
 import br.com.felmanc.integrationtests.vo.TokenVO;
+import br.com.felmanc.integrationtests.vo.pagedmodels.PagedModelPerson;
 import io.restassured.builder.RequestSpecBuilder;
 import io.restassured.config.EncoderConfig;
 import io.restassured.config.RestAssuredConfig;
@@ -260,7 +259,8 @@ public class PersonControllerYamlTest extends AbstractIntegrationTest {
 		update.setLastName(person.getLastName() + "2");
 		update.setAddress(person.getAddress());
 		update.setGender(person.getGender());
-
+		update.setEnabled(person.getEnabled());
+		
 		var persistedPerson = given()
 				.config(RestAssuredConfig
 						.config()
@@ -364,20 +364,20 @@ public class PersonControllerYamlTest extends AbstractIntegrationTest {
 	@Order(8)
 	public void testFindAll() throws JsonMappingException, JsonProcessingException {
 
-		var content = given()
+		var wrapper = given()
 				.spec(specification)
 				.contentType(TestConfigs.CONTENT_TYPE_YAML)
 				.accept(TestConfigs.CONTENT_TYPE_YAML)
+				.queryParams("page", 3, "size", 10)
 					.when()
 					.get()
 				.then()
 					.statusCode(200)
 				.extract()
 					.body()
-						.as(PersonVO[].class, objectMapper);
+						.as(PagedModelPerson.class, objectMapper);
 
-			
-		List<PersonVO> people = Arrays.asList(content);		
+		var people = wrapper.getContent();
 		
 		PersonVO foundPersonOne = people.get(0);
 
@@ -388,14 +388,14 @@ public class PersonControllerYamlTest extends AbstractIntegrationTest {
 		assertNotNull(foundPersonOne.getLastName());
 		assertNotNull(foundPersonOne.getAddress());
 		assertNotNull(foundPersonOne.getGender());
-		
+
 		assertTrue(foundPersonOne.getEnabled());
 
-		assertEquals(1, foundPersonOne.getId());
+		assertEquals(677, foundPersonOne.getId());
 
-		assertEquals("Ayrton", foundPersonOne.getFirstName());
-		assertEquals("Senna", foundPersonOne.getLastName());
-		assertEquals("São Paulo", foundPersonOne.getAddress());
+		assertEquals("Alic", foundPersonOne.getFirstName());
+		assertEquals("Terbrug", foundPersonOne.getLastName());
+		assertEquals("3 Eagle Crest Court", foundPersonOne.getAddress());
 		assertEquals("Male", foundPersonOne.getGender());
 		
 		PersonVO foundPersonSix = people.get(5);
@@ -407,15 +407,15 @@ public class PersonControllerYamlTest extends AbstractIntegrationTest {
 		assertNotNull(foundPersonSix.getLastName());
 		assertNotNull(foundPersonSix.getAddress());
 		assertNotNull(foundPersonSix.getGender());
+
+		assertTrue(foundPersonOne.getEnabled());
 		
-		assertTrue(foundPersonSix.getEnabled());
+		assertEquals(911, foundPersonSix.getId());
 
-		assertEquals(9, foundPersonSix.getId());
-
-		assertEquals("Nelson", foundPersonSix.getFirstName());
-		assertEquals("Mandela", foundPersonSix.getLastName());
-		assertEquals("Mvezo -South Africa", foundPersonSix.getAddress());
-		assertEquals("Male", foundPersonSix.getGender());
+		assertEquals("Allegra", foundPersonSix.getFirstName());
+		assertEquals("Dome", foundPersonSix.getLastName());
+		assertEquals("57 Roxbury Pass", foundPersonSix.getAddress());
+		assertEquals("Female", foundPersonSix.getGender());
 	}
 	
 	@Test

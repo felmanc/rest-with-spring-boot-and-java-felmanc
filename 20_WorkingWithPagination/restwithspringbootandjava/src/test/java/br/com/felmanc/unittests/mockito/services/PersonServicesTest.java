@@ -19,6 +19,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Pageable;
 
 import br.com.felmanc.data.vo.v1.PersonVO;
 import br.com.felmanc.exceptions.RequiredObjectIsNullException;
@@ -32,6 +33,7 @@ import br.com.felmanc.unittests.mapper.mocks.MockPerson;
 class PersonServicesTest {
 
 	MockPerson input;
+	private static Pageable pageable;
 	
 	// PersonServices possui a injeção de dependência repository
 	// @InjectMocks: injeta um Mock para repository
@@ -45,6 +47,8 @@ class PersonServicesTest {
 	void setUpMocks() throws Exception {
 		input = new MockPerson();
 		MockitoAnnotations.openMocks(this);
+		
+		pageable = new Pageable();
 	}
 
 	@Test
@@ -53,8 +57,10 @@ class PersonServicesTest {
 		
 		// No momento de executar PersonService.findById executa o mock para repository
 		when(repository.findAll()).thenReturn(list);
-
-		var people = service.findAll();
+		
+		pageable.withPage(0);
+		
+		var people = service.findAll(pageable);
 		
 		assertNotNull(people);
 		assertEquals(14, people.size());
