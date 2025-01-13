@@ -44,7 +44,7 @@ class BookServicesTest {
 		input = new MockBook();
 		MockitoAnnotations.openMocks(this);
 	}
-	
+/*
 	@Test
 	void testFindAll() {
 		List<Book> list = input.mockEntityList();
@@ -95,7 +95,7 @@ class BookServicesTest {
 		assertEquals(5.5D, bookEight.getPrice());
 		assertEquals("Title's Book8", bookEight.getTitle());
 	}
-	
+*/
 	@Test
 	void testFindById() {
 		

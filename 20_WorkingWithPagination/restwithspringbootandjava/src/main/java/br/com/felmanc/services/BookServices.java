@@ -5,6 +5,7 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 import java.util.logging.Logger;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.EntityModel;
@@ -25,17 +26,17 @@ import br.com.felmanc.repositories.BookRepository;
 public class BookServices {
 	private Logger logger = Logger.getLogger(BookServices.class.getName());
 
-	//@Autowired
+	@Autowired
 	BookRepository repository;
 
-	//@Autowired
+	@Autowired
 	PagedResourcesAssembler<BookVO> assembler;
 	
 	public BookServices(BookRepository repository, PagedResourcesAssembler<BookVO> assembler) {
 		this.repository = repository;
 		this.assembler = assembler;
 	}
-	
+
 	public PagedModel<EntityModel<BookVO>> findAll(Pageable pageable) {
 		logger.info("Find all books!");
 		

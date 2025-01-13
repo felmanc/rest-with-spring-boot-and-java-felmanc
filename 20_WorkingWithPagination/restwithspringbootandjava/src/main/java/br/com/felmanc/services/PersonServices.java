@@ -34,11 +34,6 @@ public class PersonServices {
 	@Autowired
 	PagedResourcesAssembler<PersonVO> assembler;
 	
-	// No lugar do @Autowired pode injetar dependencia pelo construtor: 
-	public PersonServices(PersonRepository repository) {
-		this.repository = repository;
-	}
-
 	public PagedModel<EntityModel<PersonVO>> findAll(Pageable pageable) {
 		logger.info("Find all people!");
 
