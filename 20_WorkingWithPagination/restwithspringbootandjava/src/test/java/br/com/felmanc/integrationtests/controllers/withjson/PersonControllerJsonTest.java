@@ -312,8 +312,8 @@ public class PersonControllerJsonTest extends AbstractIntegrationTest{
 
 		var content = given()
 				.spec(specification)
-				.queryParams("page", 3, "size", 10)
 				.contentType(TestConfigs.CONTENT_TYPE_JSON)
+				.queryParams("page", 3, "size", 10)
 					.when()
 					.get()
 				.then()
