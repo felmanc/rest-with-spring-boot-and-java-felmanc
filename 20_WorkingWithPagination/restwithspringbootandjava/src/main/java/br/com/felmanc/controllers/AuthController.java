@@ -38,7 +38,7 @@ public class AuthController {
 	@SuppressWarnings("rawtypes")
 	@Operation(summary = "Refresh token for authenticated user and returns a token")
 	@PutMapping(value = "/refresh/{username}")
-	public ResponseEntity refreshToken(/*@PathVariable("username")*/ String username,
+	public ResponseEntity refreshToken(@PathVariable("username") String username,
 			@RequestHeader("Authorization") String refreshToken) {
 		if (checkIfParamsIsNotNull(username, refreshToken))
 			return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Invalid client request!");
