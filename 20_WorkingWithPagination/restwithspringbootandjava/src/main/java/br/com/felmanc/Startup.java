@@ -19,7 +19,8 @@ public class Startup {
        	//geraSenha();
     }
     
-    private static void geraSenha() {
+    @SuppressWarnings("unused")
+	private static void geraSenha() {
     
         Map<String, PasswordEncoder> encoders = new HashMap<>();
         
