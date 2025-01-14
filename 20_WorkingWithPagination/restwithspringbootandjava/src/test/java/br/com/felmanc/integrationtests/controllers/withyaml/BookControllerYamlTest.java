@@ -6,9 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.Date;
-import java.util.List;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.MethodOrderer.OrderAnnotation;
@@ -31,6 +29,7 @@ import br.com.felmanc.integrationtests.testcontainers.AbstractIntegrationTest;
 import br.com.felmanc.integrationtests.vo.AccountCredentialsVO;
 import br.com.felmanc.integrationtests.vo.BookVO;
 import br.com.felmanc.integrationtests.vo.TokenVO;
+import br.com.felmanc.integrationtests.vo.pagedmodels.PagedModelBook;
 import io.restassured.builder.RequestSpecBuilder;
 import io.restassured.config.EncoderConfig;
 import io.restassured.config.RestAssuredConfig;
@@ -315,21 +314,22 @@ public class BookControllerYamlTest extends AbstractIntegrationTest {
 	@Order(7)
 	public void testFindAll() throws JsonMappingException, JsonProcessingException {
 
-		var content = given()
+		var wrapper = given()
 				.spec(specification)
 				.contentType(TestConfigs.CONTENT_TYPE_YAML)
 				.accept(TestConfigs.CONTENT_TYPE_YAML)
+				.queryParams("page", 0, "size", 7)
 					.when()
 					.get()
 				.then()
 					.statusCode(200)
 				.extract()
 					.body()
-					.as(BookVO[].class, objectMapper);
+					.as(PagedModelBook.class, objectMapper);
 		
-		List<BookVO> books = Arrays.asList(content);		
-		
-		//('Ralph Johnson, Erich Gamma, John Vlissides e Richard Helm', '2017-11-29 15:15:13.636000', 45.00, 'Design Patterns'),
+		var books = wrapper.getContent();		
+
+		//('Brian Goetz e Tim Peierls', '2017-11-07 15:09:01.674000', 80.00, 'Java Concurrency in Practice')
 		BookVO foundBookTwo = books.get(1);
 
 		assertNotNull(foundBookTwo);
@@ -340,13 +340,13 @@ public class BookControllerYamlTest extends AbstractIntegrationTest {
 		assertNotNull(foundBookTwo.getLaunchDate());
 		assertNotNull(foundBookTwo.getPrice());
 		
-		assertEquals(2, foundBookTwo.getId());
+		assertEquals(9, foundBookTwo.getId());
 
-		assertEquals("Design Patterns", foundBookTwo.getTitle());
-		assertEquals("Ralph Johnson, Erich Gamma, John Vlissides e Richard Helm", foundBookTwo.getAuthor());
-		assertEquals(45.0d, foundBookTwo.getPrice());
+		assertEquals("Java Concurrency in Practice", foundBookTwo.getTitle());
+		assertEquals("Brian Goetz e Tim Peierls", foundBookTwo.getAuthor());
+		assertEquals(80.0d, foundBookTwo.getPrice());
 		
-		//('Eric Freeman, Elisabeth Freeman, Kathy Sierra, Bert Bates', '2017-11-07 15:09:01.674000', 110.00, 'Head First Design Patterns'),
+		//('Martin Fowler e Kent Beck', '2017-11-07 15:09:01.674000', 88.00, 'Refactoring')
 		BookVO foundBookSeven = books.get(6);
 
 		assertNotNull(foundBookSeven);
@@ -357,11 +357,11 @@ public class BookControllerYamlTest extends AbstractIntegrationTest {
 		assertNotNull(foundBookSeven.getLaunchDate());
 		assertNotNull(foundBookSeven.getPrice());
 		
-		assertEquals(7, foundBookSeven.getId());
+		assertEquals(6, foundBookSeven.getId());
 
-		assertEquals("Head First Design Patterns", foundBookSeven.getTitle());
-		assertEquals("Eric Freeman, Elisabeth Freeman, Kathy Sierra, Bert Bates", foundBookSeven.getAuthor());
-		assertEquals(110.0d, foundBookSeven.getPrice());
+		assertEquals("Refactoring", foundBookSeven.getTitle());
+		assertEquals("Martin Fowler e Kent Beck", foundBookSeven.getAuthor());
+		assertEquals(88.0d, foundBookSeven.getPrice());
 	}
 
 	@Test

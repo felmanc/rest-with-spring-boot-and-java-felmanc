@@ -6,7 +6,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Date;
-import java.util.List;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.MethodOrderer.OrderAnnotation;
@@ -16,7 +15,6 @@ import org.junit.jupiter.api.TestMethodOrder;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -27,6 +25,7 @@ import br.com.felmanc.integrationtests.testcontainers.AbstractIntegrationTest;
 import br.com.felmanc.integrationtests.vo.AccountCredentialsVO;
 import br.com.felmanc.integrationtests.vo.BookVO;
 import br.com.felmanc.integrationtests.vo.TokenVO;
+import br.com.felmanc.integrationtests.wrapper.WrapperBookVO;
 import io.restassured.builder.RequestSpecBuilder;
 import io.restassured.filter.log.LogDetail;
 import io.restassured.filter.log.RequestLoggingFilter;
@@ -274,6 +273,7 @@ public class BookControllerJsonTest extends AbstractIntegrationTest{
 		var content = given()
 				.spec(specification)
 				.contentType(TestConfigs.CONTENT_TYPE_JSON)
+				.queryParams("page", 0, "size", 7)
 					.when()
 					.get()
 				.then()
@@ -282,9 +282,11 @@ public class BookControllerJsonTest extends AbstractIntegrationTest{
 					.body()
 						.asString();
 		
-		List<BookVO> books = objectMapper.readValue(content, new TypeReference<List<BookVO>>() {});		
+		WrapperBookVO wrapper = objectMapper.readValue(content, WrapperBookVO.class);
 		
-		//('Ralph Johnson, Erich Gamma, John Vlissides e Richard Helm', '2017-11-29 15:15:13.636000', 45.00, 'Design Patterns'),
+		var books = wrapper.getEmbedded().getBooks();
+		
+		//('Brian Goetz e Tim Peierls', '2017-11-07 15:09:01.674000', 80.00, 'Java Concurrency in Practice')
 		BookVO foundBookTwo = books.get(1);
 
 		assertNotNull(foundBookTwo);
@@ -295,13 +297,13 @@ public class BookControllerJsonTest extends AbstractIntegrationTest{
 		assertNotNull(foundBookTwo.getLaunchDate());
 		assertNotNull(foundBookTwo.getPrice());
 		
-		assertEquals(2, foundBookTwo.getId());
+		assertEquals(9, foundBookTwo.getId());
 
-		assertEquals("Design Patterns", foundBookTwo.getTitle());
-		assertEquals("Ralph Johnson, Erich Gamma, John Vlissides e Richard Helm", foundBookTwo.getAuthor());
-		assertEquals(45.0d, foundBookTwo.getPrice());
+		assertEquals("Java Concurrency in Practice", foundBookTwo.getTitle());
+		assertEquals("Brian Goetz e Tim Peierls", foundBookTwo.getAuthor());
+		assertEquals(80.0d, foundBookTwo.getPrice());
 		
-		//('Eric Freeman, Elisabeth Freeman, Kathy Sierra, Bert Bates', '2017-11-07 15:09:01.674000', 110.00, 'Head First Design Patterns'),
+		//('Martin Fowler e Kent Beck', '2017-11-07 15:09:01.674000', 88.00, 'Refactoring')
 		BookVO foundBookSeven = books.get(6);
 
 		assertNotNull(foundBookSeven);
@@ -312,11 +314,11 @@ public class BookControllerJsonTest extends AbstractIntegrationTest{
 		assertNotNull(foundBookSeven.getLaunchDate());
 		assertNotNull(foundBookSeven.getPrice());
 		
-		assertEquals(7, foundBookSeven.getId());
+		assertEquals(6, foundBookSeven.getId());
 
-		assertEquals("Head First Design Patterns", foundBookSeven.getTitle());
-		assertEquals("Eric Freeman, Elisabeth Freeman, Kathy Sierra, Bert Bates", foundBookSeven.getAuthor());
-		assertEquals(110.0d, foundBookSeven.getPrice());
+		assertEquals("Refactoring", foundBookSeven.getTitle());
+		assertEquals("Martin Fowler e Kent Beck", foundBookSeven.getAuthor());
+		assertEquals(88.0d, foundBookSeven.getPrice());
 	}
 
 	@Test
