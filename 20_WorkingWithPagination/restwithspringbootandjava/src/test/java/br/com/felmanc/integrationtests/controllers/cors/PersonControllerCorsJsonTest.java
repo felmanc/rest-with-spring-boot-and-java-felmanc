@@ -250,7 +250,7 @@ public class PersonControllerCorsJsonTest extends AbstractIntegrationTest{
 	public void testDelete() throws JsonMappingException, JsonProcessingException {
 		mockPerson();
 		
-		var content = given()
+		given()
 				.spec(specification)
 				.contentType(TestConfigs.CONTENT_TYPE_JSON)
 					.pathParam("id", person.getId())
@@ -258,12 +258,7 @@ public class PersonControllerCorsJsonTest extends AbstractIntegrationTest{
 					.when()
 					.delete("{id}")
 				.then()
-					.statusCode(204)
-				.extract()
-					.body()
-						.asString();
-		
-		assertNotNull(content);
+					.statusCode(204);
 	}
 
 	

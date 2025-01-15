@@ -283,7 +283,7 @@ public class BookControllerXMLTest extends AbstractIntegrationTest {
 				.spec(specification)
 				.contentType(TestConfigs.CONTENT_TYPE_XML)
 				.accept(TestConfigs.CONTENT_TYPE_XML)
-				.queryParams("page", 0, "size", 7)
+				.queryParams("page", 0, "size", 7, "direction", "asc")
 					.when()
 					.get()
 				.then()
@@ -383,8 +383,37 @@ public class BookControllerXMLTest extends AbstractIntegrationTest {
 			.put()
 				.then()
 					.statusCode(400);
-	}	
-	
+	}
+
+	@Test
+	@Order(11)
+	public void testHATEOAS() throws JsonMappingException, JsonProcessingException {
+
+		var content = given()
+				.spec(specification)
+				.contentType(TestConfigs.CONTENT_TYPE_XML)
+				.accept(TestConfigs.CONTENT_TYPE_XML)
+				.queryParams("page", 0, "size", 7, "direction", "asc")
+					.when()
+					.get()
+				.then()
+					.statusCode(200)
+				.extract()
+					.body()
+						.asString();
+		
+		assertTrue(content.contains("<links><rel>self</rel><href>http://localhost:8888/api/book/v1/9</href></links>"));
+		assertTrue(content.contains("<links><rel>self</rel><href>http://localhost:8888/api/book/v1/8</href></links>"));
+		assertTrue(content.contains("<links><rel>self</rel><href>http://localhost:8888/api/book/v1/14</href></links>"));
+
+		assertTrue(content.contains("<links><rel>first</rel><href>http://localhost:8888/api/book/v1?direction=asc&amp;page=0&amp;size=7&amp;sort=author,asc</href></links>"));
+		assertTrue(content.contains("<links><rel>self</rel><href>http://localhost:8888/api/book/v1?page=0&amp;size=7&amp;direction=asc</href></links>"));
+		assertTrue(content.contains("<links><rel>next</rel><href>http://localhost:8888/api/book/v1?direction=asc&amp;page=1&amp;size=7&amp;sort=author,asc</href></links>"));
+		assertTrue(content.contains("<links><rel>last</rel><href>http://localhost:8888/api/book/v1?direction=asc&amp;page=2&amp;size=7&amp;sort=author,asc</href></links>"));
+		
+		assertTrue(content.contains("<page><size>7</size><totalElements>15</totalElements><totalPages>3</totalPages><number>0</number></page>"));
+	}
+
 	private void mockBook() {
 		book.setTitle("Effective Java");
 		book.setAuthor("Joshua Bloch");
