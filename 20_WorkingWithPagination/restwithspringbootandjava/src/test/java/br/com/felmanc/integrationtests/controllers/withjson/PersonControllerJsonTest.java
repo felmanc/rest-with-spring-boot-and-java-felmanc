@@ -305,7 +305,7 @@ public class PersonControllerJsonTest extends AbstractIntegrationTest{
 		
 		assertEquals("No records found for this ID: " + person.getId(), message);
 	}	
-	
+
 	@Test
 	@Order(8)
 	public void testFindAll() throws JsonMappingException, JsonProcessingException {
@@ -313,7 +313,7 @@ public class PersonControllerJsonTest extends AbstractIntegrationTest{
 		var content = given()
 				.spec(specification)
 				.contentType(TestConfigs.CONTENT_TYPE_JSON)
-				.queryParams("page", 3, "size", 10)
+				.queryParams("page", 3, "size", 10, "direction", "asc")
 					.when()
 					.get()
 				.then()
@@ -456,6 +456,44 @@ public class PersonControllerJsonTest extends AbstractIntegrationTest{
 					.statusCode(400);
 	}	
 	
+	
+	/*
+	 * Validação dos links HATEOAS para o retorno de Person
+	 * Movido de PersonServicesTest:
+	 * 	O teste unitário precisaria mockar o assembler de PersonService, sobrescrevendo a regra de negócio do FindAll
+	 */
+	@Test
+	@Order(13)
+	public void testHATEOAS() throws JsonMappingException, JsonProcessingException {
+
+		var content = given()
+				.spec(specification)
+				.contentType(TestConfigs.CONTENT_TYPE_JSON)
+				.queryParams("page", 3, "size", 10, "direction", "asc")
+					.when()
+					.get()
+				.then()
+					.statusCode(200)
+				.extract()
+					.body()
+						.asString();
+		
+
+		System.out.println(content);
+		
+		assertTrue(content.contains("\"_links\":{\"self\":{\"href\":\"http://localhost:8888/api/person/v1/677\"}}}"));
+		assertTrue(content.contains("\"_links\":{\"self\":{\"href\":\"http://localhost:8888/api/person/v1/846\"}}}"));
+		assertTrue(content.contains("\"_links\":{\"self\":{\"href\":\"http://localhost:8888/api/person/v1/714\"}}}"));
+
+		assertTrue(content.contains("\"_links\":{\"first\":{\"href\":\"http://localhost:8888/api/person/v1?direction=asc&page=0&size=10&sort=firstName,asc\"}"));
+		assertTrue(content.contains("\"prev\":{\"href\":\"http://localhost:8888/api/person/v1?direction=asc&page=2&size=10&sort=firstName,asc\"}"));
+		assertTrue(content.contains("\"self\":{\"href\":\"http://localhost:8888/api/person/v1?page=3&size=10&direction=asc\"}"));
+		assertTrue(content.contains("\"next\":{\"href\":\"http://localhost:8888/api/person/v1?direction=asc&page=4&size=10&sort=firstName,asc\"}"));
+		assertTrue(content.contains("\"last\":{\"href\":\"http://localhost:8888/api/person/v1?direction=asc&page=100&size=10&sort=firstName,asc\"}}"));
+		
+		assertTrue(content.contains("\"page\":{\"size\":10,\"totalElements\":1007,\"totalPages\":101,\"number\":3}}"));
+	}
+
 	private void mockPerson() {
 		person.setFirstName("Nelson");
 		person.setLastName("Piquet");
