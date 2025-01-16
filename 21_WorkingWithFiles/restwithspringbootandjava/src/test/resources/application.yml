@@ -2,6 +2,8 @@ server:
   port: 8888
 cors:
   originPatterns: http://localhost:3000,http://localhost:8080,https://erudio.com.br,https://felmanc.com.br
+file:
+  upload-dir: /Data/Loc.Dev/Curso/udemy-curso-JavaSpringApi/UploadDir
 security:
   jwt:
     token:
@@ -25,6 +27,12 @@ spring:
         #enable_lazy_load_no_trans: true
   #jta:
     #enable: true
+  servlet:
+    multipart:
+      enabled: true
+      file-size-threshold: 2KB
+      max-file-size: 200MB
+      max-request-size: 215MB
 springdoc:
   pathsToMatch:
     - /auth/**

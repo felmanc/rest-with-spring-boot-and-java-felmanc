@@ -13,5 +13,10 @@
     "name": "security.jwt.token.expire-lenght",
     "type": "java.lang.String",
     "description": "The lenght of time duration of the token"
+  },
+  {
+    "name": "file.upload-dir",
+    "type": "java.lang.String",
+    "description": "The path to upload file"
   }
 ]}
