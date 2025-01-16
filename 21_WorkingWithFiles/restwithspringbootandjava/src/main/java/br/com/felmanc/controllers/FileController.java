@@ -1,6 +1,9 @@
 package br.com.felmanc.controllers;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -36,5 +39,16 @@ public class FileController {
 		return
 			new UploadFileResponseVO(
 				filename, fileDownloadUri, file.getContentType(), file.getSize());
+	}
+	
+	@PostMapping("/uploadMultipleFiles")
+	public List<UploadFileResponseVO> uploadMultipleFiles(
+			@RequestParam(/*"file"*/) MultipartFile[] files) {
+		logger.info("Storing file to disk");
+		
+		return Arrays.asList(files)
+				.stream()
+				.map(file -> uploadFile(file))
+				.collect(Collectors.toList());
 	}
 }
