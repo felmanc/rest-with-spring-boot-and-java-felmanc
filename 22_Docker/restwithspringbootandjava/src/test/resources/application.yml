@@ -3,7 +3,7 @@ server:
 cors:
   originPatterns: http://localhost:3000,http://localhost:8080,https://erudio.com.br,https://felmanc.com.br
 file:
-  upload-dir: /Data/Loc.Dev/Curso/udemy-curso-JavaSpringApi/UploadDir
+  upload-dir: /home/runner/work/rest-with-spring-boot-and-java-felmanc/UploadDir
 security:
   jwt:
     token:
