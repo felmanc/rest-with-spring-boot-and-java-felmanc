@@ -38,8 +38,6 @@ export default function Books() {
                         <FiTrash2 size={20} color="#251FC5"/>
                     </button>
                 </li>
-            </ul>
-            <ul>
                 <li>
                     <strong>Title:</strong>
                     <p>Docker Deep Dive</p>
@@ -58,8 +56,6 @@ export default function Books() {
                         <FiTrash2 size={20} color="#251FC5"/>
                     </button>
                 </li>
-            </ul>
-            <ul>
                 <li>
                     <strong>Title:</strong>
                     <p>Docker Deep Dive</p>
@@ -78,8 +74,6 @@ export default function Books() {
                         <FiTrash2 size={20} color="#251FC5"/>
                     </button>
                 </li>
-            </ul>
-            <ul>
                 <li>
                     <strong>Title:</strong>
                     <p>Docker Deep Dive</p>
@@ -98,8 +92,6 @@ export default function Books() {
                         <FiTrash2 size={20} color="#251FC5"/>
                     </button>
                 </li>
-            </ul>
-            <ul>
                 <li>
                     <strong>Title:</strong>
                     <p>Docker Deep Dive</p>
