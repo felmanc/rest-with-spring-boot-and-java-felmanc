@@ -15,7 +15,7 @@ export default function Login() {
     let history = useNavigate();
     
     async function login(e){
-        e.preventDefault();
+        e.preventDefault(); // Para tratar single-page application (SPA)
 
         const data = {
             username,
@@ -25,8 +25,8 @@ export default function Login() {
         try {
             const response = await api.post('auth/signin', data);
 
-            localStorage.setItem('username', username);
-            localStorage.setItem('accessToken', response.data.token);
+            localStorage.setItem('username', response.data.username);
+            localStorage.setItem('accessToken', response.data.accessToken);
 
             history('/books');
         } catch (err) {
