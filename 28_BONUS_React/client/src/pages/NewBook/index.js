@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import {useNavigate, Link, useParams} from 'react-router-dom';
 import { FiArrowLeft } from 'react-icons/fi';
 
@@ -22,7 +22,34 @@ export default function NewBook(){
     const accessToken = localStorage.getItem('accessToken');
 
     let history = useNavigate();
-    
+   
+    const header = { headers: {
+        Authorization: `Bearer ${accessToken}`
+        }
+    }
+
+    async function loadBook() {
+        try {
+            const response = await api.get(`api/book/v1/${bookId}`, header);
+
+            let adjustedDate = response.data.launchDate.split("T", 10)[0];
+
+            setId(response.data.id);
+            setTitle(response.data.title);
+            setAuthor(response.data.author);
+            setPrice(response.data.price);
+            setLaunchDate(adjustedDate);
+        } catch (error) {
+            alert('Error recovering Book! Try again!');
+            history('/books');
+        }
+    }
+
+    useEffect(() => {
+        if (bookId === '0') return;
+        else loadBook();
+    }, [bookId])
+
     async function createNewBook(e){
         e.preventDefault();
 
@@ -31,11 +58,6 @@ export default function NewBook(){
             author,
             launchDate,
             price,
-        }
-
-        const header = { headers: {
-            Authorization: `Bearer ${accessToken}`
-            }
         }
 
         try {
@@ -85,6 +107,5 @@ export default function NewBook(){
                 </form>
             </div>
         </div>
-
     )
 }
