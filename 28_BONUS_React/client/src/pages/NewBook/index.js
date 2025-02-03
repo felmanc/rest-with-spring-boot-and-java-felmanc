@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useCallback, useMemo} from 'react';
 import {useNavigate, Link, useParams} from 'react-router-dom';
 import { FiArrowLeft } from 'react-icons/fi';
 
@@ -23,12 +23,12 @@ export default function NewBook(){
 
     let history = useNavigate();
    
-    const header = { headers: {
+    const header = useMemo(() => ({ headers: {
         Authorization: `Bearer ${accessToken}`
         }
-    }
+    }), [accessToken]);
 
-    async function loadBook() {
+    const loadBook = useCallback (async () => {
         try {
             const response = await api.get(`api/book/v1/${bookId}`, header);
 
@@ -43,12 +43,12 @@ export default function NewBook(){
             alert('Error recovering Book! Try again!');
             history('/books');
         }
-    }
+    }, [bookId, header, history]);
 
     useEffect(() => {
         if (bookId === '0') return;
         else loadBook();
-    }, [bookId])
+    }, [bookId, loadBook])
 
     async function createNewBook(e){
         e.preventDefault();
