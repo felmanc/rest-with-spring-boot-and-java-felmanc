@@ -296,7 +296,6 @@ public class BookControllerXMLTest extends AbstractIntegrationTest {
 		
 		var books = wrapper.getContent();
 		
-		//('Brian Goetz e Tim Peierls', '2017-11-07 15:09:01.674000', 80.00, 'Java Concurrency in Practice')
 		BookVO foundBookTwo = books.get(1);
 
 		assertNotNull(foundBookTwo);
@@ -307,13 +306,12 @@ public class BookControllerXMLTest extends AbstractIntegrationTest {
 		assertNotNull(foundBookTwo.getLaunchDate());
 		assertNotNull(foundBookTwo.getPrice());
 		
-		assertEquals(9, foundBookTwo.getId());
+		assertEquals(3, foundBookTwo.getId());
 
-		assertEquals("Java Concurrency in Practice", foundBookTwo.getTitle());
-		assertEquals("Brian Goetz e Tim Peierls", foundBookTwo.getAuthor());
-		assertEquals(80.0d, foundBookTwo.getPrice());
+		assertEquals("Clean Code", foundBookTwo.getTitle());
+		assertEquals("Robert C. Martin", foundBookTwo.getAuthor());
+		assertEquals(77.0d, foundBookTwo.getPrice());
 		
-		//('Martin Fowler e Kent Beck', '2017-11-07 15:09:01.674000', 88.00, 'Refactoring')
 		BookVO foundBookSeven = books.get(6);
 
 		assertNotNull(foundBookSeven);
@@ -324,11 +322,11 @@ public class BookControllerXMLTest extends AbstractIntegrationTest {
 		assertNotNull(foundBookSeven.getLaunchDate());
 		assertNotNull(foundBookSeven.getPrice());
 		
-		assertEquals(6, foundBookSeven.getId());
+		assertEquals(7, foundBookSeven.getId());
 
-		assertEquals("Refactoring", foundBookSeven.getTitle());
-		assertEquals("Martin Fowler e Kent Beck", foundBookSeven.getAuthor());
-		assertEquals(88.0d, foundBookSeven.getPrice());
+		assertEquals("Head First Design Patterns", foundBookSeven.getTitle());
+		assertEquals("Eric Freeman, Elisabeth Freeman, Kathy Sierra, Bert Bates", foundBookSeven.getAuthor());
+		assertEquals(110.0d, foundBookSeven.getPrice());
 	}
 
 	@Test
@@ -402,14 +400,14 @@ public class BookControllerXMLTest extends AbstractIntegrationTest {
 					.body()
 						.asString();
 		
-		assertTrue(content.contains("<links><rel>self</rel><href>http://localhost:8888/api/book/v1/9</href></links>"));
+		assertTrue(content.contains("<links><rel>self</rel><href>http://localhost:8888/api/book/v1/3</href></links>"));
 		assertTrue(content.contains("<links><rel>self</rel><href>http://localhost:8888/api/book/v1/8</href></links>"));
-		assertTrue(content.contains("<links><rel>self</rel><href>http://localhost:8888/api/book/v1/14</href></links>"));
+		assertTrue(content.contains("<links><rel>self</rel><href>http://localhost:8888/api/book/v1/7</href></links>"));
 
-		assertTrue(content.contains("<links><rel>first</rel><href>http://localhost:8888/api/book/v1?direction=asc&amp;page=0&amp;size=7&amp;sort=author,asc</href></links>"));
+		assertTrue(content.contains("<links><rel>first</rel><href>http://localhost:8888/api/book/v1?direction=asc&amp;page=0&amp;size=7&amp;sort=title,asc</href></links>"));
 		assertTrue(content.contains("<links><rel>self</rel><href>http://localhost:8888/api/book/v1?page=0&amp;size=7&amp;direction=asc</href></links>"));
-		assertTrue(content.contains("<links><rel>next</rel><href>http://localhost:8888/api/book/v1?direction=asc&amp;page=1&amp;size=7&amp;sort=author,asc</href></links>"));
-		assertTrue(content.contains("<links><rel>last</rel><href>http://localhost:8888/api/book/v1?direction=asc&amp;page=2&amp;size=7&amp;sort=author,asc</href></links>"));
+		assertTrue(content.contains("<links><rel>next</rel><href>http://localhost:8888/api/book/v1?direction=asc&amp;page=1&amp;size=7&amp;sort=title,asc</href></links>"));
+		assertTrue(content.contains("<links><rel>last</rel><href>http://localhost:8888/api/book/v1?direction=asc&amp;page=2&amp;size=7&amp;sort=title,asc</href></links>"));
 		
 		assertTrue(content.contains("<page><size>7</size><totalElements>15</totalElements><totalPages>3</totalPages><number>0</number></page>"));
 	}
