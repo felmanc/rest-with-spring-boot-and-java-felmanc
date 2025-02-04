@@ -11,12 +11,12 @@ import logoImage from '../../assets/logo.svg'
 export default function Books() {
 
     const [books, setBooks] = useState([]);
-    const [page, setPage] = useState(1);
+    const [page, setPage] = useState(0);
 
     const username = localStorage.getItem('username');
     const accessToken = localStorage.getItem('accessToken');
 
-    let history = useNavigate();
+    let navigate = useNavigate();
 
     const headerDel = {
         headers: {
@@ -26,12 +26,12 @@ export default function Books() {
 
     async function logout() {
         localStorage.clear();
-        history('/');
+        navigate('/');
     }
 
     async function editBook(id) {
         try {
-            history(`/book/new/${id}`);
+            navigate(`/book/new/${id}`);
         } catch (error) {
             alert('Edit failed! Try again.');
         }
@@ -69,7 +69,7 @@ export default function Books() {
 
     useEffect(() => {
         fetchMoreBooks();
-    }, [fetchMoreBooks])
+    }, [fetchMoreBooks, page])
 
     return (
         <div className='book-container'>

@@ -18,10 +18,10 @@ export default function NewBook(){
 
     const {bookId} = useParams();
 
-    const username = localStorage.getItem('username');
+    //const username = localStorage.getItem('username');
     const accessToken = localStorage.getItem('accessToken');
 
-    let history = useNavigate();
+    let navigate = useNavigate();
    
     const header = useMemo(() => ({
         headers: {
@@ -42,9 +42,9 @@ export default function NewBook(){
             setLaunchDate(adjustedDate);
         } catch (error) {
             alert('Error recovering Book! Try again!');
-            history('/books');
+            navigate('/books');
         }
-    }, [bookId, header, history]);
+    }, [bookId, header, navigate]);
 
     useEffect(() => {
         if (bookId === '0') return;
@@ -69,7 +69,7 @@ export default function NewBook(){
                 await api.put('api/book/v1', data, header);
             }
 
-            history('/books');
+            navigate('/books');
         } catch (err) {
             alert('Error while recording Book! Try again!');
         }
