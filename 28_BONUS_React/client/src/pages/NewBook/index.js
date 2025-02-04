@@ -23,8 +23,9 @@ export default function NewBook(){
 
     let history = useNavigate();
    
-    const header = useMemo(() => ({ headers: {
-        Authorization: `Bearer ${accessToken}`
+    const header = useMemo(() => ({
+        headers: {
+            Authorization: `Bearer ${accessToken}`
         }
     }), [accessToken]);
 

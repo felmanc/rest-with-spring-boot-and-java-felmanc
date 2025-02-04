@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { FiPower, FiEdit, FiTrash2 } from 'react-icons/fi';
 
@@ -11,6 +11,7 @@ import logoImage from '../../assets/logo.svg'
 export default function Books() {
 
     const [books, setBooks] = useState([]);
+    const [page, setPage] = useState(1);
 
     const username = localStorage.getItem('username');
     const accessToken = localStorage.getItem('accessToken');
@@ -46,24 +47,29 @@ export default function Books() {
         }
     }
 
-    const headerGet = {
+    const headerGet = useMemo(() => ({
         headers: {
             Authorization: `Bearer ${accessToken}`
         },
         params: {
-            page: 1,
-            //limit: 4,
+            page: page,
             size: 4,
             direction: 'asc'
         }
-    };
+    }), [accessToken, page]);
+
+    const fetchMoreBooks = useCallback (async () => {
+        const response = await api.get('api/book/v1', headerGet);
+
+        if(!response.data._embedded) return;
+
+        setBooks([...books, ...response.data._embedded.bookVOList])
+        setPage(page + 1);
+    }, [headerGet, books, page]);
 
     useEffect(() => {
-        api.get('api/book/v1', headerGet)
-        .then(response => {
-            setBooks(response.data._embedded.bookVOList)
-        })
-    })
+        fetchMoreBooks();
+    }, [fetchMoreBooks])
 
     return (
         <div className='book-container'>
@@ -99,6 +105,8 @@ export default function Books() {
                     </li>
                     ))}
              </ul>
+
+             <button className="button" onClick={fetchMoreBooks} type="button">Load More</button>
         </div>
     );
 }
